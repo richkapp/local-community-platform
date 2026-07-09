@@ -40,5 +40,7 @@ Current production project:
 - Framework preset: Astro
 - Install command: `bun install`
 - Build command: `bun run build`
+- Current deployment path: Vercel CLI with the signed-in `zkapp@pm.me` browser session token.
+- GitHub auto-deploy status: not connected yet. `vercel git connect` returned `You need to add a Login Connection to your GitHub account first.` Add the GitHub login connection in Vercel, then run `vercel git connect git@github.com:0rderfl0w/braga-ai-builders.git` from this repo.
 
 Do not deploy this on Z's Hetzner server as the normal production target.
