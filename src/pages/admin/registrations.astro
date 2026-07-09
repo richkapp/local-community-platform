@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminDashboard from '../../components/admin/AdminDashboard';
+---
+<BaseLayout title="Registrations · Braga AI Builders">
+  <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+    <AdminDashboard mode="registrations" client:load />
+  </section>
+</BaseLayout>

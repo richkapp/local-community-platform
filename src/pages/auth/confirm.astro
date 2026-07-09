@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthCallback from '../../components/auth/AuthCallback';
+---
+<BaseLayout title="Confirm sign in">
+  <section class="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+    <h1 class="mb-6 text-4xl font-black text-white">Signing you in</h1>
+    <AuthCallback client:load />
+  </section>
+</BaseLayout>

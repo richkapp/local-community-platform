@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProfileForm from '../components/profile/ProfileForm';
+---
+<BaseLayout title="Settings · Braga AI Builders">
+  <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-black text-white">Profile settings</h1>
+    <p class="mt-4 text-slate-300">Keep your public builder profile useful and safe.</p>
+    <div class="mt-8">
+      <ProfileForm client:load />
+    </div>
+  </section>
+</BaseLayout>

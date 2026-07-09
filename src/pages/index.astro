@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthStatus from '../components/auth/AuthStatus';
+---
+<BaseLayout title="Braga AI Builders" description="A local community for people building practical things with AI in Braga.">
+  <section class="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-28">
+    <div>
+      <p class="text-sm font-bold uppercase tracking-[0.3em] text-braga-300">Local AI community · Braga</p>
+      <h1 class="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">Build useful things with people nearby.</h1>
+      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Braga AI Builders is a monthly meetup and online idea board for people learning, shipping, and sharing practical AI projects.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/join/braga-whatsapp" class="btn-primary">Join from WhatsApp invite</a>
+        <a href="/ideas" class="btn-secondary">Browse ideas</a>
+      </div>
+    </div>
+    <div class="card p-6">
+      <h2 class="text-2xl font-bold text-white">Community app</h2>
+      <div class="mt-6 grid gap-4">
+        <div class="rounded-2xl bg-white/5 p-4"><strong>Magic links</strong><p class="mt-1 text-sm text-slate-300">No passwords to remember or reset.</p></div>
+        <div class="rounded-2xl bg-white/5 p-4"><strong>Ideas</strong><p class="mt-1 text-sm text-slate-300">Upvote future session ideas, no negative voting.</p></div>
+        <div class="rounded-2xl bg-white/5 p-4"><strong>Events</strong><p class="mt-1 text-sm text-slate-300">Register for monthly builder nights.</p></div>
+      </div>
+      <div class="mt-6">
+        <AuthStatus client:load />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

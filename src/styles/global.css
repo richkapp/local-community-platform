@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #08111f;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(217, 249, 157, 0.12), transparent 30rem),
+    #08111f;
+  color: #ecfeff;
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/20 backdrop-blur;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-braga-400 px-5 py-3 font-semibold text-ink-950 shadow-glow transition hover:bg-braga-300 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-white/15 px-5 py-3 font-semibold text-braga-50 transition hover:border-braga-300/70 hover:bg-white/10 active:scale-[0.98];
+  }
+
+  .input {
+    @apply min-h-[46px] w-full rounded-2xl border border-white/10 bg-ink-900/90 px-4 py-3 text-braga-50 outline-none transition placeholder:text-slate-500 focus:border-braga-300 focus:ring-4 focus:ring-braga-400/15;
+  }
+
+  .label {
+    @apply text-sm font-semibold text-braga-100;
+  }
+}

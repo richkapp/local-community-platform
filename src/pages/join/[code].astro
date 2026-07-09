@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import InviteEmailForm from '../../components/auth/InviteEmailForm';
+const code = Astro.params.code || 'braga-whatsapp';
+---
+<BaseLayout title="Join Braga AI Builders">
+  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <p class="text-sm font-bold uppercase tracking-[0.3em] text-braga-300">Invite required</p>
+    <h1 class="mt-4 text-4xl font-black text-white">Join Braga AI Builders</h1>
+    <p class="mt-4 text-slate-300">Enter your email and we will send a one-time sign-in link. No password needed.</p>
+    <div class="mt-8">
+      <InviteEmailForm code={code} client:load />
+    </div>
+  </section>
+</BaseLayout>

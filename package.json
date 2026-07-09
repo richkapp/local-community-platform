@@ -1,0 +1,31 @@
+{
+  "name": "braga-ai-builders",
+  "version": "0.1.0",
+  "type": "module",
+  "private": false,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "bun test",
+    "verify": "bun test && bun run build"
+  },
+  "dependencies": {
+    "@astrojs/react": "latest",
+    "@astrojs/tailwind": "latest",
+    "@astrojs/vercel": "latest",
+    "@supabase/supabase-js": "latest",
+    "astro": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwindcss": "3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "^5.9.3"
+  }
+}

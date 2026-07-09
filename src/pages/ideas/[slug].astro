@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import IdeaDetail from '../../components/ideas/IdeaDetail';
+const slug = Astro.params.slug || '';
+---
+<BaseLayout title="Idea · Braga AI Builders">
+  <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+    <IdeaDetail slug={slug} client:load />
+  </section>
+</BaseLayout>
