@@ -8,3 +8,6 @@
 - Added Supabase schema, RLS policies, seed data, and invite magic-link Edge Function source.
 - Added profile, ideas, events, registration, and admin UI surfaces.
 - Added static safety tests for project structure, schema/RLS, and the no-downvotes product rule.
+- Created the public GitHub repository and pushed the initial project.
+- Created and configured the Supabase project, applied migrations, seeded the first event/invite, and deployed `request-invite-magic-link`.
+- Created and linked the Vercel project under the Braga AI Builders team with Astro + Bun project settings.

@@ -7,10 +7,19 @@
 3. Seed initial data if needed with `supabase/seed.sql`.
 4. Deploy `request-invite-magic-link`.
 5. Set Edge Function secrets:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `BRAGA_SUPABASE_URL`
+   - `BRAGA_SUPABASE_ANON_KEY`
+   - `BRAGA_SUPABASE_SERVICE_ROLE_KEY`
    - `INVITE_REDIRECT_URL`
+
+Current production project:
+
+- Project ref: `ygihxknsnrngcvrvdxzl`
+- Region: `eu-west-3`
+- Invite function: `request-invite-magic-link`
+- Default invite route: `/join/braga-whatsapp`
+
+The function also supports Supabase's built-in `SUPABASE_*` env names when present, but the hosted project uses the `BRAGA_SUPABASE_*` secrets because custom Supabase Edge Function secrets cannot start with `SUPABASE_`.
 
 ## Vercel
 
@@ -22,5 +31,14 @@
 3. Build command: `bun run build`.
 4. Install command: `bun install`.
 5. Deploy and verify `/`, `/join/braga-whatsapp`, `/ideas`, and `/events`.
+
+Current production project:
+
+- Team: `Braga AI Builders` (`braga-ai-builders`)
+- Project: `braga-ai-builders`
+- Expected production URL: `https://braga-ai-builders.vercel.app`
+- Framework preset: Astro
+- Install command: `bun install`
+- Build command: `bun run build`
 
 Do not deploy this on Z's Hetzner server as the normal production target.

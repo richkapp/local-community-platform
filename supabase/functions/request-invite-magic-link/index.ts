@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -9,6 +7,15 @@ const corsHeaders = {
 type InviteRequest = {
   email?: string;
   code?: string;
+};
+
+type Invite = {
+  id: string;
+  code: string;
+  max_uses: number | null;
+  uses_count: number;
+  expires_at: string | null;
+  revoked_at: string | null;
 };
 
 function json(body: Record<string, unknown>, status = 200) {
@@ -26,6 +33,62 @@ function normalizeCode(value: unknown) {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
+async function supabaseRequest<T>(path: string, init: RequestInit, serviceRoleKey: string) {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL');
+  if (!supabaseUrl) throw new Error('SUPABASE_URL is not configured');
+
+  const response = await fetch(`${supabaseUrl}${path}`, {
+    ...init,
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(init.headers || {})
+    }
+  });
+
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(typeof body?.message === 'string' ? body.message : `Supabase request failed: ${response.status}`);
+  }
+
+  return body as T;
+}
+
+async function sendMagicLink(email: string, code: string, redirectTo: string, anonKey: string) {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL');
+  if (!supabaseUrl) throw new Error('SUPABASE_URL is not configured');
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    method: 'POST',
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      email,
+      create_user: true,
+      data: { invite_code: code, community: 'Braga AI Builders' },
+      gotrue_meta_security: {}
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    let body: { message?: string } = {};
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = { message: text };
+    }
+    throw new Error(body.message || `Auth request failed: ${response.status}`);
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -35,12 +98,11 @@ Deno.serve(async (request) => {
     return json({ error: 'Method not allowed' }, 405);
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('BRAGA_SUPABASE_ANON_KEY');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('BRAGA_SUPABASE_SERVICE_ROLE_KEY');
   const redirectTo = Deno.env.get('INVITE_REDIRECT_URL');
 
-  if (!supabaseUrl || !anonKey || !serviceRoleKey || !redirectTo) {
+  if (!anonKey || !serviceRoleKey || !redirectTo) {
     return json({ error: 'Invite service is not configured' }, 500);
   }
 
@@ -62,21 +124,15 @@ Deno.serve(async (request) => {
     return json({ error: 'Invite link is invalid' }, 400);
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-
-  const publicClient = createClient(supabaseUrl, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-
-  const { data: invite, error: inviteError } = await admin
-    .from('invites')
-    .select('id, code, max_uses, uses_count, expires_at, revoked_at')
-    .eq('code', code)
-    .maybeSingle();
-
-  if (inviteError) {
+  let invite: Invite | null = null;
+  try {
+    const rows = await supabaseRequest<Invite[]>(
+      `/rest/v1/invites?code=eq.${encodeURIComponent(code)}&select=id,code,max_uses,uses_count,expires_at,revoked_at`,
+      { method: 'GET' },
+      serviceRoleKey
+    );
+    invite = rows[0] ?? null;
+  } catch {
     return json({ error: 'Could not validate invite' }, 500);
   }
 
@@ -92,42 +148,35 @@ Deno.serve(async (request) => {
     return json({ error: 'Invite link has reached its limit' }, 403);
   }
 
-  const { error: redemptionError } = await admin.from('invite_redemptions').insert({
-    invite_id: invite.id,
-    email,
-    request_ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
-    user_agent: request.headers.get('user-agent')
-  });
-
-  if (redemptionError) {
+  try {
+    await supabaseRequest(
+      '/rest/v1/invite_redemptions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          invite_id: invite.id,
+          email,
+          request_ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+          user_agent: request.headers.get('user-agent')
+        })
+      },
+      serviceRoleKey
+    );
+  } catch {
     return json({ error: 'Could not record invite request' }, 500);
   }
 
-  const inviteResult = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo,
-    data: { invite_code: code, community: 'Braga AI Builders' }
-  });
-
-  if (inviteResult.error) {
-    const message = inviteResult.error.message.toLowerCase();
-    if (!message.includes('already') && !message.includes('registered')) {
-      return json({ error: 'Could not send invite email' }, 500);
-    }
-
-    const { error: otpError } = await publicClient.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false, emailRedirectTo: redirectTo }
-    });
-
-    if (otpError) {
-      return json({ error: 'Could not send sign-in email' }, 500);
-    }
+  try {
+    await sendMagicLink(email, code, redirectTo, anonKey);
+  } catch {
+    return json({ error: 'Could not send sign-in email' }, 500);
   }
 
-  await admin
-    .from('invites')
-    .update({ uses_count: invite.uses_count + 1 })
-    .eq('id', invite.id);
+  await supabaseRequest(
+    `/rest/v1/invites?id=eq.${invite.id}`,
+    { method: 'PATCH', body: JSON.stringify({ uses_count: invite.uses_count + 1 }) },
+    serviceRoleKey
+  ).catch(() => null);
 
   return json({ ok: true, message: 'Check your email for your Braga AI Builders sign-in link.' });
 });
