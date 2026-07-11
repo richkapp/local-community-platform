@@ -1,28 +1,102 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import AuthStatus from '../components/auth/AuthStatus';
+import { communityConfig } from '../config/community';
+
+const whatsappUrl = communityConfig.whatsappUrl;
+const aiRange = [
+  'Replacing Google searches with ChatGPT',
+  'Using AI to work smarter every day',
+  'Building products, workflows, and automations',
+  'Running a business with teams of AI agents'
+];
 ---
-<BaseLayout title="Braga AI Builders" description="A local community for people building practical things with AI in Braga.">
-  <section class="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-28">
-    <div>
-      <p class="text-sm font-bold uppercase tracking-[0.3em] text-braga-300">Local AI community · Braga</p>
-      <h1 class="mt-5 text-5xl font-black tracking-tight text-white md:text-7xl">Build useful things with people nearby.</h1>
-      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Braga AI Builders is a monthly meetup and online idea board for people learning, shipping, and sharing practical AI projects.</p>
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a href="/join/braga-whatsapp" class="btn-primary">Join from WhatsApp invite</a>
-        <a href="/ideas" class="btn-secondary">Browse ideas</a>
+<BaseLayout title={`${communityConfig.name} · A local AI community`} description={`A ${communityConfig.city} community for people actively using AI—from everyday ChatGPT users to advanced builders and everyone in between.`}>
+  <main>
+    <section class="border-b border-white/10">
+      <div class="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:px-8 lg:py-28">
+        <div>
+          <p class="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-limewash">A local AI community in {communityConfig.city}</p>
+          <h1 class="max-w-4xl text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">Curious about AI? Come meet your people.</h1>
+          <p class="mt-7 max-w-3xl text-lg leading-8 text-braga-100 sm:text-xl sm:leading-9">
+            Maybe you use ChatGPT instead of Google. Maybe a team of AI agents runs half your business. Most of us are somewhere in between. What connects us is simple: we use AI, we’re curious about where it’s going, and we want to learn from people nearby.
+          </p>
+          <div class="mt-9 flex flex-wrap gap-4">
+            <a href={whatsappUrl} class="btn-primary" target="_blank" rel="noreferrer noopener">Join WhatsApp Community</a>
+            <a href="/ideas" class="btn-secondary">Browse Posts</a>
+          </div>
+        </div>
+
+        <aside class="card overflow-hidden p-0" aria-label="Who the community is for">
+          <div class="border-b border-white/10 p-6 sm:p-8">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">There is no “advanced enough”</p>
+            <h2 class="mt-3 text-2xl font-black text-white">Different experience. Shared curiosity.</h2>
+          </div>
+          <ol class="divide-y divide-white/10">
+            {aiRange.map((item, index) => (
+              <li class="flex items-center gap-4 px-6 py-4 sm:px-8">
+                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-limewash/40 bg-limewash/10 text-xs font-black text-limewash">{index + 1}</span>
+                <span class="text-sm leading-6 text-braga-100">{item}</span>
+              </li>
+            ))}
+          </ol>
+          <p class="border-t border-white/10 bg-white/[0.025] px-6 py-5 text-sm font-semibold text-white sm:px-8">If you actively use AI and want to understand it better, you belong here.</p>
+        </aside>
       </div>
-    </div>
-    <div class="card p-6">
-      <h2 class="text-2xl font-bold text-white">Community app</h2>
-      <div class="mt-6 grid gap-4">
-        <div class="rounded-2xl bg-white/5 p-4"><strong>Magic links</strong><p class="mt-1 text-sm text-slate-300">No passwords to remember or reset.</p></div>
-        <div class="rounded-2xl bg-white/5 p-4"><strong>Ideas</strong><p class="mt-1 text-sm text-slate-300">Upvote future session ideas, no negative voting.</p></div>
-        <div class="rounded-2xl bg-white/5 p-4"><strong>Events</strong><p class="mt-1 text-sm text-slate-300">Register for monthly builder nights.</p></div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+      <div class="max-w-4xl">
+        <p class="text-sm font-bold uppercase tracking-[0.2em] text-limewash">Why this website exists</p>
+        <h2 class="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl">WhatsApp is the conversation. This site is the memory.</h2>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-braga-100">The chat is where we talk. This is where useful ideas, perspectives, and resources stay findable—and where the wider community gets a say in what happens next.</p>
       </div>
-      <div class="mt-6">
-        <AuthStatus client:load />
+
+      <div class="mt-12 grid gap-5 md:grid-cols-3">
+        <article class="card p-6 sm:p-7">
+          <span class="text-sm font-black text-limewash">01</span>
+          <h3 class="mt-4 text-xl font-bold text-white">Share what’s useful</h3>
+          <p class="mt-3 text-sm leading-7 text-braga-100">Post an idea, a resource worth keeping, or a perspective that might help someone else. It stays available after the WhatsApp thread moves on.</p>
+          <a href="/ideas" class="mt-5 inline-flex text-sm font-bold text-limewash hover:underline">Browse community posts →</a>
+        </article>
+
+        <article class="card p-6 sm:p-7">
+          <span class="text-sm font-black text-limewash">02</span>
+          <h3 class="mt-4 text-xl font-bold text-white">Shape local events</h3>
+          <p class="mt-3 text-sm leading-7 text-braga-100">Posts and upvotes show what people actually want to explore together, so meetups reflect the interests of the community—not just the loudest voice.</p>
+          <a href="/events" class="mt-5 inline-flex text-sm font-bold text-limewash hover:underline">See upcoming events →</a>
+        </article>
+
+        <article class="card p-6 sm:p-7">
+          <span class="text-sm font-black text-limewash">03</span>
+          <h3 class="mt-4 text-xl font-bold text-white">Give everyone a voice</h3>
+          <p class="mt-3 text-sm leading-7 text-braga-100">You don’t have to catch the right moment in a busy chat. Anyone can share, vote, and help decide what the community pays attention to next.</p>
+        </article>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="border-y border-white/10 bg-white/[0.02]">
+      <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:px-8 lg:py-24">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-violet-200">Website membership</p>
+          <h2 class="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl">Your name, attached to what you share.</h2>
+        </div>
+        <div class="card p-6 sm:p-8">
+          <p class="text-lg leading-8 text-braga-100">Anyone can browse posts, publish, and vote without an account. A website membership simply connects your posts to your name and profile, so people know who shared them and you can edit them later.</p>
+          <ul class="mt-7 grid gap-3 text-sm text-braga-100 sm:grid-cols-3">
+            <li class="rounded-xl border border-white/10 p-4"><strong class="block text-white">Own your posts</strong><span class="mt-1 block">Edit what you shared.</span></li>
+            <li class="rounded-xl border border-white/10 p-4"><strong class="block text-white">Add your profile</strong><span class="mt-1 block">Put a person behind the post.</span></li>
+            <li class="rounded-xl border border-white/10 p-4"><strong class="block text-white">Choose visibility</strong><span class="mt-1 block">Joining the directory is optional.</span></li>
+          </ul>
+          <div class="mt-7 flex flex-wrap gap-4">
+            <a href="/signin" class="btn-secondary">Sign in or create an account</a>
+            <a href="/members" class="inline-flex items-center px-2 text-sm font-bold text-limewash hover:underline">Meet the members →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
+      <p class="text-2xl font-bold leading-10 text-white sm:text-3xl">Different skills. Different interests. One shared habit: actively using AI and helping each other get better at it.</p>
+    </section>
+  </main>
 </BaseLayout>

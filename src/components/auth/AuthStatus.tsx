@@ -1,24 +1,56 @@
 import { useEffect, useState } from 'react';
-import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { isAnonymousUser } from '@/lib/anonymous';
+import { useAuthUser } from './useAuthUser';
 
 export default function AuthStatus() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading } = useAuthUser();
+  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-    return () => listener.subscription.unsubscribe();
-  }, []);
+    if (!user) {
+      setAdmin(false);
+      return;
+    }
+
+    async function loadAdminStatus() {
+      try {
+        const { data } = await supabase.rpc('is_admin');
+        setAdmin(Boolean(data));
+      } catch {
+        setAdmin(false);
+      }
+    }
+
+    void loadAdminStatus();
+  }, [user]);
+
+  if (loading) {
+    return <span className="text-sm text-braga-200" role="status">Checking account…</span>;
+  }
 
   if (!user) {
-    return <a href="/join/braga-whatsapp" className="btn-primary">Join with invite</a>;
+    return <a className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-limewash hover:text-limewash" href="/signin">Sign In</a>;
+  }
+
+  if (isAnonymousUser(user)) {
+    return <a className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-limewash hover:text-limewash" href="/signin">Sign In</a>;
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 text-sm text-braga-100">
-      <span>{user.email}</span>
-      <button className="btn-secondary" onClick={() => supabase.auth.signOut().then(() => window.location.reload())}>Sign out</button>
+    <div className="flex flex-wrap items-center gap-3 text-sm">
+      {admin && <a className="nav-link" href="/admin">Admin</a>}
+      <a className="nav-link" href="/settings">Settings</a>
+      <button
+        className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white transition hover:border-limewash hover:text-limewash"
+        type="button"
+        onClick={async () => {
+          await supabase.auth.signOut();
+          window.location.href = '/';
+        }}
+      >
+        Sign out
+      </button>
     </div>
   );
 }

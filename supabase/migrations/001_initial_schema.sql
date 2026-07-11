@@ -14,8 +14,9 @@ create table public.profiles (
   website_url text,
   linkedin_url text,
   github_url text,
+  x_url text,
   role public.member_role not null default 'member',
-  is_public boolean not null default true,
+  is_public boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint profiles_handle_format check (handle is null or handle ~ '^[a-z0-9][a-z0-9-]{2,30}$')

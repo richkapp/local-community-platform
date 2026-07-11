@@ -2,25 +2,36 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { communityConfig } from '../config/community';
 
 interface Props {
-  title: string;
+  title?: string;
   description?: string;
 }
 
-const { title, description = 'Open-source community platform for Braga AI Builders.' } = Astro.props;
+const {
+  title = communityConfig.name,
+  description = `A local community for people actively using AI in ${communityConfig.city}.`
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.url.origin);
 ---
-<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#07110d" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
   </head>
-  <body>
+  <body class="min-h-screen bg-ink-950 text-white antialiased">
     <Nav />
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <Footer />

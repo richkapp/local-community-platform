@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdminDashboard from '../../components/admin/AdminDashboard';
+import { communityPageTitle } from '../../config/community';
 ---
-<BaseLayout title="Registrations · Braga AI Builders">
+<BaseLayout title={communityPageTitle('Moderate posts')}>
   <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-    <AdminDashboard mode="registrations" client:load />
+    <AdminDashboard mode="ideas" client:load />
   </section>
 </BaseLayout>

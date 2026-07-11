@@ -1,9 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import IdeaDetail from '../../components/ideas/IdeaDetail';
-const slug = Astro.params.slug || '';
+import { communityPageTitle } from '../../config/community';
+import { publicRecordExists } from '../../lib/public-server';
+
+const slug = Astro.params.slug ?? '';
+const exists = /^[a-z0-9][a-z0-9-]{2,159}$/.test(slug)
+  ? await publicRecordExists('ideas', 'slug', slug)
+  : false;
+if (exists === false) Astro.response.status = 404;
 ---
-<BaseLayout title="Idea · Braga AI Builders">
+<BaseLayout title={communityPageTitle('Post')}>
   <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
     <IdeaDetail slug={slug} client:load />
   </section>

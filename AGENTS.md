@@ -1,40 +1,44 @@
-# AGENTS.md — Braga AI Builders
+# AGENTS.md — Local AI Community Platform
 
 ## Project
 
-Braga AI Builders is an open-source community platform for a local WhatsApp-based AI builders group in Braga that meets once a month.
+This repository is the open-source platform used by Braga AI Builders and designed for forks by other local AI communities.
 
 Core scope:
 
-- invite-gated email magic-link auth
-- accounts, profiles, settings, and public-safe member directory
-- upvote-only idea feed for future monthly activities
-- event pages and registrations
-- small admin dashboard for organizers
+- invite-gated, passwordless email magic-link authentication;
+- member profiles, settings, and a public-safe member directory;
+- public posts with upvote-only voting, categories, and tags;
+- external community event pages;
+- organizer tools for invites, events, post moderation, and admin-only member access.
 
-## Active workspace
+## Workspace
 
-- Hetzner working root: `/home/deploy/projects/braga-ai-builders`
-- Use Bun. Do not use npm/yarn/pnpm unless a tool hard-requires `npx` for one-off CLI execution.
-- Before work, read this file, `CHANGELOG.md`, and the latest plan under `docs/plans/`.
+- Use Bun. Do not use npm, Yarn, or pnpm unless a tool specifically requires `npx` for a one-off CLI.
+- Before work, read this file, `CHANGELOG.md`, and relevant current documentation.
+- Preserve dirty worktrees and inspect Git status before changing files.
 
-## Provider accounts
+## Architecture
 
-- Supabase production account for this project: `bragabuilders.bash197@passinbox.com`.
-- Vercel production account for this project: `zkapp@pm.me`.
-- Z may have multiple Supabase/Vercel accounts. Confirm the account email before creating projects, linking projects, deploying, or changing settings.
-- Vercel CLI may need `HOME=/home/deploy` to see host-level auth, but do not assume that auth is the Braga account until `vercel whoami` or the GUI confirms it.
+- Astro provides layouts and server routes; React islands handle interactive/authenticated UI.
+- Supabase provides Auth, Postgres, Row Level Security, and Edge Functions.
+- Vercel is the reference frontend host, but forks may use another Astro-compatible host.
+- `src/config/community.ts` is the single source for public community identity and links.
+- `supabase/migrations/` is the source of truth for schema, grants, RLS, views, and RPCs.
+- Every installation owns separate provider accounts, projects, credentials, and member data.
 
-## Architecture decisions
+## Product and security rules
 
-- Supabase Cloud is the v1 backend: Auth, Postgres, RLS, Storage, Edge Functions.
-- Vercel is the v1 host.
-- Hetzner is a development machine only, not the production backend and not required for contributors.
-- Keep all schema and security policy in `supabase/migrations/`.
-- Use service-role keys only inside Supabase Edge Functions or maintainer-only scripts.
-- Do not add password auth in v1. Use email magic links only.
-- Signup must be invite-gated. Public unrestricted signup is out of scope.
-- Idea voting is upvote-only. Do not add downvotes or negative ranking.
+- Keep profiles private by default and separate public profile fields from private account data.
+- Do not add password authentication; use invite-gated email magic links.
+- Require explicit consent before sending a transactional login/signup email.
+- Do not use member emails for marketing.
+- Keep post voting upvote-only.
+- Keep event creation, moderation, and full member access organizer-only.
+- Use service-role keys only inside trusted Edge Functions or maintainer operations.
+- Every Supabase client operation in React needs loading and safe error states.
+- Add static or executable checks for new authorization boundaries.
+- Never commit production credentials, auth links, sessions, member exports, or `.env` files.
 
 ## Commands
 
@@ -46,18 +50,10 @@ bun run build
 bun run verify
 ```
 
-## Implementation rules
+## Delivery
 
-- Default to Astro for static layout and React islands for authenticated/dynamic interactions.
-- Every Supabase client operation in React needs loading and error states.
-- Keep public profile fields separate from private account data.
-- RLS tests or static policy checks must cover new tables/policies.
-- Keep contributor docs updated when env vars, setup, or provider steps change.
-
-## Deployment notes
-
-- Production Supabase project should be created under `bragabuilders.bash197@passinbox.com`.
-- Production Vercel project should be created under `zkapp@pm.me`.
-- Add only browser-safe env vars with the `PUBLIC_` prefix to Vercel frontend environments.
-- Set Edge Function secrets in Supabase, not Vercel.
-- Verify deployed URLs with `curl` before reporting production live.
+- Use feature branches and pull requests; do not push application work directly to `main`.
+- `bun run verify` is the required merge gate.
+- Keep contributor and self-hosting docs aligned with environment, schema, or deployment changes.
+- Verify deployed routes and authorization boundaries before reporting a release complete.
+- Production email tests require explicit approval and a controlled deliverable inbox; never use disposable or non-deliverable addresses.

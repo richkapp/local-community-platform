@@ -1,33 +1,40 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState } from 'react';
+import { cancelRegistration } from '@/lib/events';
+import { toUserMessage } from '@/lib/errors';
+import type { Registration } from '@/lib/types';
 
-type Props = { eventId: string };
+type Props = {
+  eventId: string;
+  signedIn: boolean;
+  status: Registration['status'] | null;
+  onChanged?: () => void | Promise<void>;
+};
 
-export default function RegistrationStatus({ eventId }: Props) {
-  const [message, setMessage] = useState('Checking registration...');
+export default function RegistrationStatus({ eventId, signedIn, status, onChanged }: Props) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function load() {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        setMessage('Sign in to register for this event.');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('event_registrations')
-        .select('status')
-        .eq('event_id', eventId)
-        .eq('user_id', userData.user.id)
-        .maybeSingle();
-
-      if (error) setMessage(error.message);
-      else if (data) setMessage(`Your registration status: ${data.status}`);
-      else setMessage('You are not registered yet.');
+  async function cancel() {
+    setBusy(true);
+    setError('');
+    try {
+      await cancelRegistration(eventId);
+      await onChanged?.();
+    } catch (caught) {
+      setError(toUserMessage('event-cancellation', caught));
+    } finally {
+      setBusy(false);
     }
+  }
 
-    load();
-  }, [eventId]);
+  if (!signedIn) return <p className="status-message">Sign in with your private invite to register.</p>;
+  if (!status || status === 'cancelled') return <p className="status-message">You are not registered yet.</p>;
 
-  return <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-braga-100">{message}</p>;
+  return (
+    <div className="status-message space-y-3" role="status">
+      <p>Your registration status: <strong className="text-white">{status}</strong></p>
+      <button type="button" className="text-sm font-semibold text-red-200 hover:text-white" onClick={cancel} disabled={busy}>{busy ? 'Cancelling…' : 'Cancel registration'}</button>
+      {error && <p className="error-message" role="alert">{error}</p>}
+    </div>
+  );
 }

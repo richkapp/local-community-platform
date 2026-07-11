@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore only values explicitly marked as placeholders"
+regexTarget = "secret"
+regexes = [
+  '''(?i)placeholder'''
+]

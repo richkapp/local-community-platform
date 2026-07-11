@@ -7,24 +7,41 @@ export type Profile = {
   website_url: string | null;
   linkedin_url: string | null;
   github_url: string | null;
+  x_url: string | null;
   role: 'member' | 'admin';
   is_public: boolean;
   created_at: string;
   updated_at: string;
 };
 
+export type PublicProfile = Pick<
+  Profile,
+  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url'
+>;
+
+export type EditableProfile = Pick<
+  Profile,
+  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url' | 'is_public'
+>;
+
+export type RipCategory = 'idea' | 'resource' | 'perspective';
+export type RipTag = 'next-event' | 'news' | 'community-challenge' | 'collaboration' | 'learning' | 'member-project';
+
 export type Idea = {
   id: string;
   slug: string;
   title: string;
   body: string;
+  category: RipCategory;
+  tags: RipTag[];
   month_key: string;
   status: 'open' | 'selected' | 'closed' | 'hidden';
-  author_id: string;
+  author_id: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'handle' | 'display_name' | 'avatar_url'> | null;
-  idea_vote_counts?: { upvote_count: number }[] | null;
+  profiles?: PublicProfile | null;
+  upvote_count?: number;
+  viewer_has_voted?: boolean;
 };
 
 export type Event = {
@@ -36,13 +53,16 @@ export type Event = {
   ends_at: string | null;
   location_name: string | null;
   location_url: string | null;
+  external_url: string | null;
+  image_url: string | null;
   capacity: number | null;
   status: 'draft' | 'published' | 'cancelled' | 'completed';
   registration_opens_at: string | null;
   registration_closes_at: string | null;
   created_at: string;
   updated_at: string;
-  event_registration_counts?: { registration_count: number }[] | null;
+  registration_count?: number;
+  viewer_registration_status?: Registration['status'] | null;
 };
 
 export type Registration = {
