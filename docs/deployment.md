@@ -19,7 +19,7 @@ npx supabase db push
 npx supabase secrets set \
   INVITE_REDIRECT_URL=https://YOUR_DOMAIN/auth/confirm \
   IDEA_SIGNUP_INVITE_CODE=YOUR_COMMUNITY_INVITE_CODE \
-  COMMUNITY_NAME="Your Local AI Community"
+  COMMUNITY_NAME="Your Community"
 npx supabase functions deploy request-invite-magic-link --no-verify-jwt
 npx supabase functions deploy anonymous-ideas --no-verify-jwt
 ```

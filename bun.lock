@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "braga-ai-builders",
+      "name": "local-community-platform",
       "dependencies": {
         "@astrojs/react": "6.0.1",
         "@astrojs/tailwind": "6.0.2",

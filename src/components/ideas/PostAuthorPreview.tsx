@@ -36,7 +36,7 @@ export default function PostAuthorPreview({ profile }: { profile: PublicProfile 
               <span className="block truncate text-xs text-limewash">@{profile.handle}</span>
             </span>
           </span>
-          <span className="mt-3 block line-clamp-3 text-sm leading-6 text-braga-100">{profile.bio || 'Building and exploring AI in Braga.'}</span>
+          <span className="mt-3 block line-clamp-3 text-sm leading-6 text-braga-100">{profile.bio || 'Sharing and learning with the local community.'}</span>
           {links.length > 0 && (
             <span className="mt-4 flex gap-2" aria-label={`${profile.display_name}'s links`}>
               {links.map(({ label, href, Icon }) => (

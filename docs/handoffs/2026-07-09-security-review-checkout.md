@@ -5,7 +5,7 @@ This handoff captures unfinished work from the post-deploy review batch. It is *
 ## Current live state
 
 - Production URL: `https://braga-ai-builders.vercel.app`
-- GitHub repo: `https://github.com/0rderfl0w/braga-ai-builders`
+- GitHub repo: `https://github.com/0rderfl0w/local-community-platform`
 - Supabase project: maintainer-controlled production project
 - Last pushed commit before this WIP: `9d7ad6c`
 

@@ -1,6 +1,8 @@
-# Local AI Community Platform
+# Local Community Platform
 
-The open-source platform behind [Braga AI Builders](https://braga-ai-builders.vercel.app). Fork it to give your local AI community a durable home for posts, member profiles, community-shaped events, and organizer tools without losing everything in chat.
+An open-source platform that gives local and interest-based communities a durable home for ideas, resources, perspectives, member profiles, and community-shaped events without losing everything in chat.
+
+[Braga AI Builders](https://braga-ai-builders.vercel.app) is the reference deployment. AI is that community's theme, not a requirement of the software. A neighborhood association, creative collective, professional network, book club, mutual-aid group, or any other community can configure the same platform around its own identity and purpose.
 
 ## What it includes
 
@@ -16,7 +18,7 @@ The open-source platform behind [Braga AI Builders](https://braga-ai-builders.ve
 ## Use it for your community
 
 1. Fork this repository or click **Use this template** on GitHub.
-2. Edit [`src/config/community.ts`](src/config/community.ts) with your community name, city, WhatsApp link, invite code, and repository URL.
+2. Edit [`src/config/community.ts`](src/config/community.ts) with your community identity, landing-page language, chat link, invite code, and repository URL.
 3. Create your own Supabase project and apply the migrations.
 4. Configure and deploy the two Edge Functions.
 5. Deploy the frontend to your own Vercel project.
@@ -42,11 +44,21 @@ Public community identity lives in one tracked file:
 ```ts
 // src/config/community.ts
 export const communityConfig = {
-  name: 'Your Local AI Community',
+  name: 'Your Community',
   city: 'Your City',
+  tagline: 'A local community for shared interests',
+  description: 'A short description of your community.',
   whatsappUrl: 'https://chat.whatsapp.com/...',
   memberInviteCode: 'your-community-invite',
-  githubUrl: 'https://github.com/you/your-community-platform'
+  githubUrl: 'https://github.com/you/local-community-platform',
+  home: {
+    eyebrow: 'A local community in Your City',
+    heroTitle: 'Come meet your people.',
+    heroBody: 'Explain who the community is for and what connects its members.',
+    experienceRange: ['Member perspective one', 'Member perspective two'],
+    experienceFooter: 'A short invitation to participate.',
+    closingStatement: 'A final statement about what members share.'
+  }
 };
 ```
 

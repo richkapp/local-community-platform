@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping local AI communities keep their knowledge, people, and events accessible outside chat.
+Thanks for helping local and interest-based communities keep their knowledge, people, and events accessible outside chat.
 
 ## Before opening a pull request
 

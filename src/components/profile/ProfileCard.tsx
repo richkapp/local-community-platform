@@ -32,7 +32,7 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
         )}
         <div>{profile.handle ? <a href={`/members/${profile.handle}`} className="group hover:text-limewash">{name}</a> : name}</div>
       </div>
-      <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-braga-100">{profile.bio || 'Building with AI in Braga.'}</p>
+      <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-braga-100">{profile.bio || 'Sharing and learning with the local community.'}</p>
       {links.length > 0 && (
         <div className="mt-5 flex flex-wrap gap-2" aria-label="Social links">
           {links.map(({ label, href, Icon }) => (
