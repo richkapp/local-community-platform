@@ -12,6 +12,7 @@ An open-source platform that gives local and interest-based communities a durabl
 - Optional public member profiles with author hover cards
 - Public events that send RSVP traffic to an external event page
 - Organizer tools for invites, events, post moderation, and an admin-only member database
+- Public bug reporting with optional contact details and organizer triage
 - Private-by-default profiles, Row Level Security, restricted RPCs, and Edge Functions
 - Astro, React, Tailwind, Supabase, Bun, and Vercel
 
@@ -20,7 +21,7 @@ An open-source platform that gives local and interest-based communities a durabl
 1. Fork this repository or click **Use this template** on GitHub.
 2. Edit [`src/config/community.ts`](src/config/community.ts) with your community identity, landing-page language, chat link, invite code, and repository URL.
 3. Create your own Supabase project and apply the migrations.
-4. Configure and deploy the two Edge Functions.
+4. Configure and deploy the three Edge Functions.
 5. Deploy the frontend to your own Vercel project.
 
 Every installation must use its own Supabase and Vercel projects. Forks never connect to Braga's production data.

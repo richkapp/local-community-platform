@@ -9,7 +9,7 @@ const schema = readdirSync('supabase/migrations')
   .join('\n');
 
 test('core community tables are defined', () => {
-  for (const table of ['profiles', 'invites', 'invite_redemptions', 'ideas', 'idea_votes', 'events', 'event_registrations']) {
+  for (const table of ['profiles', 'invites', 'invite_redemptions', 'ideas', 'idea_votes', 'events', 'event_registrations', 'bug_reports']) {
     expect(schema).toContain(`create table public.${table}`);
   }
 });
@@ -19,7 +19,7 @@ test('one upvote per member per idea is enforced', () => {
 });
 
 test('RLS is enabled on user-owned tables', () => {
-  for (const table of ['profiles', 'ideas', 'idea_votes', 'events', 'event_registrations']) {
+  for (const table of ['profiles', 'ideas', 'idea_votes', 'events', 'event_registrations', 'bug_reports']) {
     expect(schema).toContain(`alter table public.${table} enable row level security;`);
   }
 });

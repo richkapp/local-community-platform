@@ -121,4 +121,38 @@ describe('delivery security contracts', () => {
     expect(migration).toContain('profiles.x_url');
     expect(migration).not.toContain('auth.users');
   });
+
+  test('bug reports use a rate-limited Edge Function and admin-only data access', async () => {
+    const migration = await read('supabase/migrations/019_bug_reports.sql');
+    const edge = await read('supabase/functions/bug-reports/index.ts');
+    const config = await read('supabase/config.toml');
+    expect(migration).toContain('create table public.bug_reports');
+    expect(migration).toContain('alter table public.bug_reports enable row level security');
+    expect(migration).toContain('create or replace function public.submit_bug_report');
+    expect(migration).toContain('char_length(normalized_description) between 20 and 5000');
+    expect(migration).toContain('p_website');
+    expect(migration).toContain("created_at >= now() - interval '1 day'");
+    expect(migration).toContain("created_at >= now() - interval '1 hour'");
+    expect(migration.match(/pg_advisory_xact_lock/g)).toHaveLength(2);
+    expect(migration).toContain('revoke all on table public.bug_reports from public, anon, authenticated');
+    expect(migration).toContain('grant all privileges on table public.bug_reports to service_role');
+    expect(migration).toContain('grant execute on function public.submit_bug_report');
+    expect(migration).toContain('to service_role');
+    expect(migration).toContain('Admins read bug reports');
+    expect(migration).toContain('Admins update bug report status');
+    expect(migration).toContain('grant update (status) on table public.bug_reports to authenticated');
+    expect(migration).not.toContain('grant insert on table public.bug_reports to anon');
+    expect(edge).toContain("'/rest/v1/rpc/submit_bug_report'");
+    expect(edge).toContain("request.headers.get('x-forwarded-for')");
+    expect(edge).toContain('if (!origin || !allowed.has(origin)) return null');
+    expect(edge).toContain("name: 'HMAC'");
+    expect(edge).toContain("crypto.subtle.sign('HMAC'");
+    expect(edge).toContain('rawBody.length > 16_000');
+    expect(edge).toContain("typeof parsed !== 'object' || Array.isArray(parsed)");
+    expect(edge).toContain('allowedOrigins.has(parsed.origin)');
+    expect(edge).toContain('not part of this community site');
+    expect(edge).not.toContain("'Access-Control-Allow-Origin': '*'");
+    expect(config).toContain('[functions.bug-reports]');
+    expect(config).toContain('verify_jwt = false');
+  });
 });

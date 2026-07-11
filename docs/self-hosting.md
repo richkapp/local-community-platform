@@ -69,11 +69,12 @@ npx supabase secrets set \
   COMMUNITY_NAME="Your Community"
 ```
 
-Deploy both functions:
+Deploy all three functions:
 
 ```bash
 npx supabase functions deploy request-invite-magic-link --no-verify-jwt
 npx supabase functions deploy anonymous-ideas --no-verify-jwt
+npx supabase functions deploy bug-reports --no-verify-jwt
 ```
 
 These functions intentionally accept requests without a user JWT. They enforce trusted origins, validate payloads, and perform privileged writes server-side. Keep their service-role access inside Supabase.
@@ -127,4 +128,4 @@ Before inviting members, confirm:
 - private profiles do not appear in `/members`;
 - a normal member cannot open `/admin` or call admin RPCs;
 - magic-link requests require the email-consent checkbox;
-- untrusted origins cannot call the email or anonymous-post functions.
+- untrusted origins cannot call the email, anonymous-post, or bug-report functions.

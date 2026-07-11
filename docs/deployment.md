@@ -22,6 +22,7 @@ npx supabase secrets set \
   COMMUNITY_NAME="Your Community"
 npx supabase functions deploy request-invite-magic-link --no-verify-jwt
 npx supabase functions deploy anonymous-ideas --no-verify-jwt
+npx supabase functions deploy bug-reports --no-verify-jwt
 ```
 
 Use exact trusted Auth redirect URLs. Keep service-role credentials inside Supabase; never send them to the browser or Vercel frontend environment.
@@ -44,6 +45,8 @@ Check these after every release:
 - `/ideas` loads posts and author profile links.
 - `/events` loads published events and external RSVP links.
 - `/members` exposes only opted-in public profiles.
+- The footer bug-report dialog accepts a detailed report without requiring name or email.
+- `/admin/bug-reports` is admin-only and can move reports between new, in review, and done.
 - `/signin` requires email consent before requesting a magic link.
 - `/admin` rejects non-admin users.
 - `/admin/members` exposes the full member database only to admins.

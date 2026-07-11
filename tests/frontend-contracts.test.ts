@@ -42,6 +42,8 @@ describe('launch frontend contracts', () => {
     expect(nav).toContain('href="/ideas"');
     expect(nav).toContain('href="/events"');
     expect(nav).toContain('href="/members"');
+    expect(nav.match(/>Posts<\/a>/g)).toHaveLength(2);
+    expect(nav).not.toContain('>Ideas</a>');
   });
 
   test('idea posting offers anonymous or account attribution without losing the draft', async () => {
@@ -132,7 +134,26 @@ describe('launch frontend contracts', () => {
     expect(footer).toContain('Local Community Platform');
     expect(footer).toContain('an open-source platform for managing local communities.');
     expect(footer).toContain('text-limewash underline');
+    expect(footer).toContain('BugReportDialog client:load');
+    expect(footer).not.toContain('Source code');
     await expect(access(new URL('src/pages/join.astro', root))).rejects.toThrow();
+  });
+
+  test('the public bug-report dialog requires useful detail without requiring identity', async () => {
+    const dialog = await read('src/components/bug-reports/BugReportDialog.tsx');
+    const client = await read('src/lib/bugReports.ts');
+    expect(dialog).toContain('🐞 Report a Bug');
+    expect(dialog).toContain('how you found the bug');
+    expect(dialog).toContain('required');
+    expect(dialog).toContain('minLength={20}');
+    expect(dialog).toContain('type="email"');
+    expect(dialog).toContain('Optional');
+    expect(dialog).toContain('name="website"');
+    expect(dialog).toContain('window.location.href');
+    expect(dialog).toContain('max-h-[calc(100dvh-2rem)]');
+    expect(dialog).toContain('overflow-y-auto');
+    expect(client).toContain('/functions/v1/bug-reports');
+    expect(client).toContain('getBugReportVisitorId');
   });
 
   test('sign in and account creation use one clearly explained magic-link flow', async () => {
@@ -165,9 +186,18 @@ describe('launch frontend contracts', () => {
       'src/components/admin/MemberManager.tsx',
       'src/components/admin/EventManager.tsx',
       'src/components/admin/IdeaModerator.tsx',
+      'src/components/admin/BugReportManager.tsx',
       'src/pages/admin/ideas.astro',
-      'src/pages/admin/members.astro'
+      'src/pages/admin/members.astro',
+      'src/pages/admin/bug-reports.astro'
     ]) await access(new URL(path, root));
-    expect(await read('src/components/admin/AdminDashboard.tsx')).not.toContain('registrations');
+    const admin = await read('src/components/admin/AdminDashboard.tsx');
+    const manager = await read('src/components/admin/BugReportManager.tsx');
+    expect(admin).not.toContain('registrations');
+    expect(admin).toContain("key: 'bug-reports'");
+    expect(manager).toContain("['new', 'in_review', 'done']");
+    expect(manager).toContain('updateBugReportStatus');
+    expect(manager).toContain('savingIds');
+    expect(manager).not.toContain('mailto:');
   });
 });

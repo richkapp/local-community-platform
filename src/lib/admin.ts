@@ -2,6 +2,19 @@ import { supabase } from './supabase';
 import type { Event, Idea } from './types';
 import { attachPublicAuthors } from './ideas';
 
+export type BugReportStatus = 'new' | 'in_review' | 'done';
+
+export type BugReport = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  description: string;
+  page_url: string | null;
+  status: BugReportStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 export type InviteRecord = {
   id: string;
   code: string;
@@ -109,6 +122,25 @@ export async function updateIdeaStatus(id: string, status: Idea['status']) {
 
 export async function deleteIdea(id: string) {
   const { error } = await supabase.from('ideas').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function listBugReports() {
+  const { data, error } = await supabase
+    .from('bug_reports')
+    .select('id, name, email, description, page_url, status, created_at, updated_at')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as BugReport[];
+}
+
+export async function updateBugReportStatus(id: string, status: BugReportStatus) {
+  const { error } = await supabase
+    .from('bug_reports')
+    .update({ status })
+    .eq('id', id)
+    .select('id')
+    .single();
   if (error) throw error;
 }
 
