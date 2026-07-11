@@ -19,6 +19,7 @@ type PublicAuthor = {
 export type IdeaPostingMode = 'anonymous' | 'account';
 export type RipInput = { title: string; body: string; category: RipCategory; tags: RipTag[] };
 export type CreateRipInput = RipInput & { mode: IdeaPostingMode };
+export const PUBLIC_IDEA_COLUMNS = 'id, slug, title, body, month_key, status, created_at, updated_at, category, tags';
 
 export async function attachPublicAuthors(ideas: Idea[]): Promise<Idea[]> {
   const ideaIds = ideas.map((idea) => idea.id);
@@ -78,7 +79,7 @@ export async function createIdea(input: CreateRipInput) {
   const { data, error } = await supabase
     .from('ideas')
     .insert({ title: rip.title, body: rip.body, category: rip.category, tags: rip.tags, slug, month_key: monthKey, author_id: user.id })
-    .select('*')
+    .select(PUBLIC_IDEA_COLUMNS)
     .single<Idea>();
   if (error) throw error;
   return data;
@@ -111,7 +112,7 @@ export async function updateOwnIdea(ideaId: string, input: RipInput) {
     .from('ideas')
     .update({ title: rip.title, body: rip.body, category: rip.category, tags: rip.tags })
     .eq('id', ideaId)
-    .select('*')
+    .select(PUBLIC_IDEA_COLUMNS)
     .single<Idea>();
   if (error) throw error;
   return data;

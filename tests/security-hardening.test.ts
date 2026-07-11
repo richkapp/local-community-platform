@@ -62,6 +62,28 @@ describe('delivery security contracts', () => {
     expect(fn).not.toContain("'Access-Control-Allow-Origin': '*'");
   });
 
+  test('public post reads hide visitor identifiers and invite retries check capacity before delivery', async () => {
+    const migration = await read('supabase/migrations/018_public_data_and_invite_capacity.sql');
+    const ideas = await read('src/lib/ideas.ts');
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const detail = await read('src/components/ideas/IdeaDetail.tsx');
+    const publicGrant = migration.slice(migration.indexOf('grant select ('), migration.indexOf(') on table public.ideas'));
+    expect(migration).toContain('revoke select on table public.ideas from anon, authenticated');
+    expect(publicGrant).not.toContain('anonymous_visitor_id');
+    expect(publicGrant).not.toContain('author_id');
+    expect(migration).toContain('create or replace function public.list_visible_ideas()');
+    expect(migration).toContain('viewer_can_edit boolean');
+    expect(migration).toContain('revoke all on table public.event_registration_counts from anon, authenticated');
+    expect(migration).toContain('id <> existing_redemption.id');
+    expect(migration.indexOf("raise exception 'invite use limit reached'"))
+      .toBeLessThan(migration.indexOf('update public.invite_redemptions'));
+    expect(ideas).toContain('PUBLIC_IDEA_COLUMNS');
+    expect(ideas).not.toContain("PUBLIC_IDEA_COLUMNS = 'id, slug, title, body, month_key, status, author_id");
+    expect(feed).not.toContain("from('ideas').select('*')");
+    expect(feed).toContain("rpc('list_visible_ideas')");
+    expect(detail).not.toContain(".select('*')");
+  });
+
   test('idea authors can edit content while only admins can change lifecycle state', async () => {
     const migration = await read('supabase/migrations/014_idea_edit_permissions.sql');
     expect(migration).toContain('grant update (title, body, status)');

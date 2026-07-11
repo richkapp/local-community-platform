@@ -69,7 +69,6 @@ function IdeaEditor({ idea, onClose, onSaved }: { idea: Idea; onClose: () => voi
 
 export default function IdeaFeed() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [viewerId, setViewerId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
   const [editing, setEditing] = useState<Idea | null>(null);
@@ -82,7 +81,7 @@ export default function IdeaFeed() {
     setLoading(true); setError('');
     try {
       const [ideaResponse, userResponse, admin, eventResponse] = await Promise.all([
-        supabase.from('ideas').select('*').neq('status', 'hidden').order('created_at', { ascending: false }),
+        supabase.rpc('list_visible_ideas').order('created_at', { ascending: false }),
         supabase.auth.getUser(),
         isCurrentUserAdmin(),
         supabase.from('events').select('*').in('status', ['published', 'completed']).gte('starts_at', new Date().toISOString()).order('starts_at', { ascending: true }).limit(1).maybeSingle()
@@ -91,7 +90,7 @@ export default function IdeaFeed() {
       if (eventResponse.error) throw eventResponse.error;
       const userId = userResponse.data.user?.id ?? null;
       const withAuthors = await attachPublicAuthors((ideaResponse.data ?? []) as Idea[]);
-      setIdeas(await hydrateIdeas(withAuthors, userId)); setViewerId(userId); setIsAdmin(admin); setNextEvent((eventResponse.data as Event | null) ?? null);
+      setIdeas(await hydrateIdeas(withAuthors, userId)); setIsAdmin(admin); setNextEvent((eventResponse.data as Event | null) ?? null);
     } catch (caught) { setError(toUserMessage('ideas-feed', caught)); }
     finally { setLoading(false); }
   }, []);
@@ -133,7 +132,7 @@ export default function IdeaFeed() {
       </section>
 
       {filteredIdeas.map((idea) => {
-        const canEdit = Boolean(viewerId && viewerId === idea.author_id && idea.status === 'open');
+        const canEdit = Boolean(idea.viewer_can_edit);
         return <article key={idea.id} className="card relative flex gap-4 p-5">
           <UpvoteButton ideaId={idea.id} initialCount={idea.upvote_count ?? 0} initialVoted={idea.viewer_has_voted ?? false} disabled={idea.status === 'closed'} />
           <div className={(canEdit || isAdmin) ? 'min-w-0 flex-1 pr-28' : 'min-w-0 flex-1'}>

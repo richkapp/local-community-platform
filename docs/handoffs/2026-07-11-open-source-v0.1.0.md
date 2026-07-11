@@ -9,7 +9,7 @@ This is the release handoff for the first stable, forkable version of the local 
 - The landing page welcomes everyone from everyday AI users to multi-agent builders.
 - WhatsApp remains the live conversation; public posts preserve ideas, resources, and perspectives.
 - Anyone can browse, post anonymously, and upvote.
-- Members use invite-gated passwordless magic links and can attach public profiles to posts.
+- Members use the configured passwordless community-access flow and can attach public profiles to posts.
 - Email requests require explicit consent to receive the transactional Supabase login/signup link and promise no marketing use.
 - Profiles remain private by default; the public directory is opt-in.
 - Public post authors link to their profiles and expose only public hover-card fields.

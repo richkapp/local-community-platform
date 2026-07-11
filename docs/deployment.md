@@ -34,7 +34,7 @@ Set:
 - `PUBLIC_SUPABASE_ANON_KEY`
 - `PUBLIC_SITE_URL`
 
-Use `bun install` and `bun run build`. Connect the public GitHub repository so merged `main` commits are the production source of truth.
+Use `bun install --frozen-lockfile` and `bun run build`. Connect the public GitHub repository so merged `main` commits are the production source of truth.
 
 ## Production smoke checks
 

@@ -36,9 +36,9 @@ export type Idea = {
   tags: RipTag[];
   month_key: string;
   status: 'open' | 'selected' | 'closed' | 'hidden';
-  author_id: string | null;
   created_at: string;
   updated_at: string;
+  viewer_can_edit?: boolean;
   profiles?: PublicProfile | null;
   upvote_count?: number;
   viewer_has_voted?: boolean;

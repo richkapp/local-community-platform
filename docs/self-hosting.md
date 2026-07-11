@@ -8,7 +8,7 @@ This guide creates an independent installation for one local community. It does 
 - Node.js 20 or newer
 - A GitHub account
 - A Supabase project
-- A Vercel project or another Astro-compatible host
+- A Vercel project
 - Supabase CLI access through `npx supabase`
 
 ## 1. Fork and configure the community
@@ -54,7 +54,7 @@ set label = excluded.label,
     revoked_at = null;
 ```
 
-Set `max_uses` to a positive integer if the invite should expire after a fixed number of successful redemptions.
+Set `max_uses` to a positive integer if access should close after a fixed number of successful redemptions. The reference platform intentionally publishes its reusable community-access route; use a private coded `/join/:code` route instead if your membership must remain invitation-only.
 
 ## 4. Configure Edge Functions
 
@@ -111,7 +111,7 @@ Normal authenticated users cannot promote themselves through the application API
 
 Import the fork into Vercel, set the three public environment variables, and use:
 
-- Install command: `bun install`
+- Install command: `bun install --frozen-lockfile`
 - Build command: `bun run build`
 
 After deployment, update `INVITE_REDIRECT_URL` and Supabase Auth redirect settings to the final domain, redeploy `request-invite-magic-link`, and run the smoke checks in [Deployment](deployment.md).

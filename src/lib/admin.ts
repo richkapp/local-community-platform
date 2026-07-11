@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { Event, Idea } from './types';
+import { attachPublicAuthors } from './ideas';
 
 export type InviteRecord = {
   id: string;
@@ -95,11 +96,10 @@ export async function updateEvent(id: string, payload: Pick<Event, 'title' | 'de
 
 export async function listAdminIdeas() {
   const { data, error } = await supabase
-    .from('ideas')
-    .select('*, profiles:profiles!ideas_author_id_fkey(handle, display_name, avatar_url)')
+    .rpc('list_visible_ideas')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Idea[];
+  return attachPublicAuthors((data ?? []) as Idea[]);
 }
 
 export async function updateIdeaStatus(id: string, status: Idea['status']) {

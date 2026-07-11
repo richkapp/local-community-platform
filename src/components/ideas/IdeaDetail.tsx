@@ -20,12 +20,12 @@ export default function IdeaDetail({ slug }: Props) {
       setLoading(true);
       setError('');
       try {
-        const { data, error: queryError } = await supabase
-          .from('ideas')
-          .select('*')
+        const { data: rawData, error: queryError } = await supabase
+          .rpc('list_visible_ideas')
           .eq('slug', slug)
           .maybeSingle();
         if (queryError) throw queryError;
+        const data = rawData as Idea | null;
         if (!data) {
           setIdea(null);
           return;
