@@ -5,7 +5,7 @@ export const communityConfig = {
   description: 'A Braga community for people actively using AI—from everyday ChatGPT users to advanced builders and everyone in between.',
   whatsappUrl: 'https://chat.whatsapp.com/GwhqmjtwcPT4vVmQmqqIRW',
   memberInviteCode: 'braga-group-988401a9f0d147dfa68b5c7a16e683d3d0569c18',
-  githubUrl: 'https://github.com/0rderfl0w/local-community-platform',
+  githubUrl: 'https://github.com/richkapp/local-community-platform',
   home: {
     eyebrow: 'A local AI community in Braga',
     heroTitle: 'Curious about AI? Come meet your people.',
