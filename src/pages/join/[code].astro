@@ -1,15 +1,29 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import InviteEmailForm from '../../components/auth/InviteEmailForm';
-const code = Astro.params.code || 'braga-whatsapp';
+import { communityPageTitle } from '../../config/community';
+
+const code = Astro.params.code ?? '';
+const validCode = /^[a-z0-9][a-z0-9-]{3,80}$/.test(code);
+if (!validCode) Astro.response.status = 404;
 ---
-<BaseLayout title="Join Braga AI Builders">
-  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    <p class="text-sm font-bold uppercase tracking-[0.3em] text-braga-300">Invite required</p>
-    <h1 class="mt-4 text-4xl font-black text-white">Join Braga AI Builders</h1>
-    <p class="mt-4 text-slate-300">Enter your email and we will send a one-time sign-in link. No password needed.</p>
-    <div class="mt-8">
-      <InviteEmailForm code={code} client:load />
-    </div>
+<BaseLayout title={communityPageTitle('Private invite')}>
+  <section class="mx-auto max-w-2xl px-4 py-20 sm:px-6 lg:px-8">
+    {validCode ? (
+      <>
+        <p class="text-sm font-bold uppercase tracking-[0.2em] text-limewash">Private invite</p>
+        <h1 class="mt-4 text-4xl font-bold">Sign in or create your account</h1>
+        <p class="mt-4 text-braga-100">It is the same passwordless process. Enter your email and we’ll send a one-time magic link.</p>
+        <div class="mt-8">
+          <InviteEmailForm code={code} client:load />
+        </div>
+      </>
+    ) : (
+      <div class="card p-8">
+        <h1 class="text-3xl font-bold">Invite link not found</h1>
+        <p class="mt-4 text-braga-100">Ask an organizer for a current private invite link.</p>
+        <a class="btn-secondary mt-6 inline-flex" href="/">Back home</a>
+      </div>
+    )}
   </section>
 </BaseLayout>

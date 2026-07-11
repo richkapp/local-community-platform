@@ -5,7 +5,7 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #08111f;
+  background: #07110d;
 }
 
 html {
@@ -14,32 +14,61 @@ html {
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-width: 320px;
   background:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 34rem),
-    radial-gradient(circle at bottom right, rgba(217, 249, 157, 0.12), transparent 30rem),
-    #08111f;
-  color: #ecfeff;
+    radial-gradient(circle at top right, rgba(201, 255, 122, 0.08), transparent 35%),
+    #07110d;
+}
+
+::selection {
+  background: #c9ff7a;
+  color: #07110d;
 }
 
 @layer components {
-  .card {
-    @apply rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/20 backdrop-blur;
-  }
-
   .btn-primary {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-braga-400 px-5 py-3 font-semibold text-ink-950 shadow-glow transition hover:bg-braga-300 active:scale-[0.98];
+    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-limewash px-5 py-2.5 text-center font-semibold text-ink-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-white/15 px-5 py-3 font-semibold text-braga-50 transition hover:border-braga-300/70 hover:bg-white/10 active:scale-[0.98];
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-5 py-2.5 text-center font-semibold text-white transition hover:border-limewash hover:text-limewash disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .card {
+    @apply rounded-3xl border border-white/10 bg-white/[0.045] shadow-xl;
   }
 
   .input {
-    @apply min-h-[46px] w-full rounded-2xl border border-white/10 bg-ink-900/90 px-4 py-3 text-braga-50 outline-none transition placeholder:text-slate-500 focus:border-braga-300 focus:ring-4 focus:ring-braga-400/15;
+    @apply w-full rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-braga-200 focus:border-limewash focus:ring-2 focus:ring-limewash/25;
   }
 
   .label {
     @apply text-sm font-semibold text-braga-100;
   }
+
+  .nav-link {
+    @apply font-semibold text-braga-100 transition hover:text-limewash;
+  }
+
+  .mobile-nav-link {
+    @apply block rounded-2xl px-3 py-3 font-semibold text-braga-100 transition hover:bg-white/5 hover:text-limewash;
+  }
+
+  .status-message {
+    @apply rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-braga-100;
+  }
+
+  .error-message {
+    @apply rounded-2xl border border-red-300/30 bg-red-950/30 px-4 py-3 text-sm text-red-100;
+  }
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 3px solid #c9ff7a;
+  outline-offset: 3px;
+}
+
+.mobile-menu[open] summary {
+  border-color: #c9ff7a;
+  color: #c9ff7a;
 }

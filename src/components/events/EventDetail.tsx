@@ -1,49 +1,49 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toUserMessage } from '@/lib/errors';
 import type { Event } from '@/lib/types';
-import EventRegistrationForm from './EventRegistrationForm';
-import RegistrationStatus from './RegistrationStatus';
 
 type Props = { slug: string };
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(value));
+function formatDate(start: string, end: string | null) {
+  const formatter = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'short' });
+  return end ? `${formatter.format(new Date(start))} – ${formatter.format(new Date(end))}` : formatter.format(new Date(start));
 }
 
 export default function EventDetail({ slug }: Props) {
   const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     supabase
       .from('events')
-      .select('*, event_registration_counts(registration_count)')
+      .select('*')
       .eq('slug', slug)
       .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) setError(error.message);
-        else setEvent(data as Event | null);
+      .then(({ data, error: queryError }) => {
+        if (queryError) setError(toUserMessage('event-detail', queryError));
+        else setEvent((data as Event | null) ?? null);
+        setLoading(false);
       });
   }, [slug]);
 
-  if (error) return <p className="card p-6 text-red-300">{error}</p>;
-  if (!event) return <p className="card p-6 text-braga-100">Loading event...</p>;
+  if (loading) return <p className="card p-6 text-braga-100" role="status">Loading event…</p>;
+  if (error) return <p className="error-message" role="alert">{error}</p>;
+  if (!event) return <div className="card p-6"><h1 className="text-2xl font-semibold">Event not found</h1><a href="/events" className="mt-4 inline-flex text-limewash">Back to events</a></div>;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <article className="card p-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-braga-300">{formatDate(event.starts_at)}</p>
-        <h1 className="mt-4 text-4xl font-black text-white">{event.title}</h1>
-        <p className="mt-5 whitespace-pre-wrap leading-8 text-slate-200">{event.description}</p>
-        <div className="mt-6 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-          <p>Location: {event.location_name ?? 'TBA'}</p>
-          <p>Registered: {event.event_registration_counts?.[0]?.registration_count ?? 0}{event.capacity ? ` / ${event.capacity}` : ''}</p>
-        </div>
-      </article>
-      <aside className="space-y-4">
-        <RegistrationStatus eventId={event.id} />
-        <EventRegistrationForm eventId={event.id} />
-      </aside>
-    </div>
+    <article className="card overflow-hidden">
+      {event.image_url && <img src={event.image_url} alt="" className="max-h-[560px] w-full object-cover" />}
+      <div className="p-6 sm:p-8">
+        <p className="text-xs uppercase tracking-[0.2em] text-braga-300">{formatDate(event.starts_at, event.ends_at)}</p>
+        <h1 className="mt-4 break-words text-4xl font-black text-white">{event.title}</h1>
+        {event.location_name && <p className="mt-4 text-sm text-braga-200">{event.location_name}</p>}
+        <p className="mt-6 whitespace-pre-wrap break-words leading-8 text-braga-100">{event.description}</p>
+        {event.external_url && (
+          <a className="btn-primary mt-8 inline-flex" href={event.external_url} target="_blank" rel="noreferrer noopener">RSVP on Luma ↗</a>
+        )}
+      </div>
+    </article>
   );
 }

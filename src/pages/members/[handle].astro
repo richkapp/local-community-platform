@@ -1,13 +1,20 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import MemberDirectory from '../../components/profile/MemberDirectory';
+import MemberProfile from '../../components/profile/MemberProfile';
+import { communityPageTitle } from '../../config/community';
+import { publicRecordExists } from '../../lib/public-server';
+
+const handle = Astro.params.handle ?? '';
+const exists = /^[a-z0-9][a-z0-9-]{2,39}$/.test(handle)
+  ? await publicRecordExists('public_profiles', 'handle', handle)
+  : false;
+if (exists === false) Astro.response.status = 404;
 ---
-<BaseLayout title="Member profile · Braga AI Builders">
+<BaseLayout title={communityPageTitle('Member')}>
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-black text-white">Member profile</h1>
-    <p class="mt-4 text-slate-300">Direct profile pages will be expanded after the first member import. For now, browse the member directory.</p>
-    <div class="mt-8">
-      <MemberDirectory client:load />
+    <a class="text-sm font-semibold text-limewash" href="/members">← All members</a>
+    <div class="mt-6">
+      <MemberProfile handle={handle} client:load />
     </div>
   </section>
 </BaseLayout>

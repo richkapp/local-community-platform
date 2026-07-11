@@ -1,27 +1,44 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
-
 type InviteRequest = {
   email?: string;
   code?: string;
+  context?: 'ideas';
+  emailConsent?: boolean;
 };
 
-type Invite = {
-  id: string;
+type ReservedInvite = {
+  redemption_id: string;
   code: string;
-  max_uses: number | null;
-  uses_count: number;
-  expires_at: string | null;
-  revoked_at: string | null;
+  email: string;
 };
 
-function json(body: Record<string, unknown>, status = 200) {
+type CorsHeaders = Record<string, string>;
+
+function trustedOrigins(redirectTo: string) {
+  const origins = new Set<string>(['http://localhost:4321', 'http://127.0.0.1:4321']);
+  try {
+    origins.add(new URL(redirectTo).origin);
+  } catch {
+    // Configuration validation below returns a server error.
+  }
+  return origins;
+}
+
+function corsFor(request: Request, redirectTo: string): CorsHeaders | null {
+  const origin = request.headers.get('origin');
+  const allowed = trustedOrigins(redirectTo);
+  if (origin && !allowed.has(origin)) return null;
+  return {
+    'Access-Control-Allow-Origin': origin && allowed.has(origin) ? origin : new URL(redirectTo).origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  };
+}
+
+function json(body: Record<string, unknown>, status: number, cors: CorsHeaders) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
   });
 }
 
@@ -33,15 +50,19 @@ function normalizeCode(value: unknown) {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
-async function supabaseRequest<T>(path: string, init: RequestInit, serviceRoleKey: string) {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL');
-  if (!supabaseUrl) throw new Error('SUPABASE_URL is not configured');
+function publicInviteError(message: string) {
+  if (/wait|too many|rate/i.test(message)) return { status: 429, error: 'Please wait before requesting another sign-in link.' };
+  if (/invalid email/i.test(message)) return { status: 400, error: 'Enter a valid email address.' };
+  if (/invalid|active|expired|exhausted|limit|revoked/i.test(message)) return { status: 403, error: 'This invite cannot be used. Ask an organizer for a current private link.' };
+  return { status: 500, error: 'The sign-in link could not be sent. Please try again.' };
+}
 
+async function apiRequest<T>(supabaseUrl: string, path: string, init: RequestInit, key: string) {
   const response = await fetch(`${supabaseUrl}${path}`, {
     ...init,
     headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: key,
+      Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json',
       Prefer: 'return=representation',
       ...(init.headers || {})
@@ -49,134 +70,118 @@ async function supabaseRequest<T>(path: string, init: RequestInit, serviceRoleKe
   });
 
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  let body: unknown = null;
+  try { body = text ? JSON.parse(text) : null; } catch { body = { message: text }; }
 
   if (!response.ok) {
-    throw new Error(typeof body?.message === 'string' ? body.message : `Supabase request failed: ${response.status}`);
+    const message = typeof body === 'object' && body && 'message' in body ? String((body as { message?: unknown }).message ?? '') : `Request failed: ${response.status}`;
+    const error = new Error(message) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
   }
-
   return body as T;
 }
 
-async function sendMagicLink(email: string, code: string, redirectTo: string, anonKey: string) {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL');
-  if (!supabaseUrl) throw new Error('SUPABASE_URL is not configured');
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
-    method: 'POST',
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      email,
-      create_user: true,
-      data: { invite_code: code, community: 'Braga AI Builders' },
-      gotrue_meta_security: {}
-    })
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    let body: { message?: string } = {};
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = { message: text };
-    }
-    throw new Error(body.message || `Auth request failed: ${response.status}`);
+async function sendInvitedLink(supabaseUrl: string, email: string, code: string, redirectTo: string, anonKey: string, serviceRoleKey: string, signupSource: 'ideas' | 'invite', communityName: string) {
+  try {
+    await apiRequest(
+      supabaseUrl,
+      `/auth/v1/invite?redirect_to=${encodeURIComponent(redirectTo)}`,
+      { method: 'POST', body: JSON.stringify({ email, data: { invite_code: code, community: communityName, SignupSource: signupSource } }) },
+      serviceRoleKey
+    );
+    return;
+  } catch (caught) {
+    const status = (caught as Error & { status?: number }).status;
+    const message = caught instanceof Error ? caught.message : '';
+    if (status !== 400 && status !== 422 && !/already|registered|exists/i.test(message)) throw caught;
   }
+
+  await apiRequest(
+    supabaseUrl,
+    `/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`,
+    { method: 'POST', body: JSON.stringify({ email, create_user: false, gotrue_meta_security: {} }) },
+    anonKey
+  );
 }
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL') || '';
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('BRAGA_SUPABASE_ANON_KEY') || '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('BRAGA_SUPABASE_SERVICE_ROLE_KEY') || '';
+  const redirectTo = Deno.env.get('INVITE_REDIRECT_URL') || '';
+  const ideaSignupCode = Deno.env.get('IDEA_SIGNUP_INVITE_CODE') || '';
+  const communityName = Deno.env.get('COMMUNITY_NAME') || 'Local AI Community';
+
+  if (!supabaseUrl || !anonKey || !serviceRoleKey || !redirectTo) {
+    return new Response(JSON.stringify({ error: 'Invite service is not configured.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 
-  if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, 405);
-  }
-
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('BRAGA_SUPABASE_ANON_KEY');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('BRAGA_SUPABASE_SERVICE_ROLE_KEY');
-  const redirectTo = Deno.env.get('INVITE_REDIRECT_URL');
-
-  if (!anonKey || !serviceRoleKey || !redirectTo) {
-    return json({ error: 'Invite service is not configured' }, 500);
-  }
+  const cors = corsFor(request, redirectTo);
+  if (!cors) return new Response(JSON.stringify({ error: 'Origin not allowed.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+  if (request.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405, cors);
 
   let payload: InviteRequest;
-  try {
-    payload = await request.json();
-  } catch {
-    return json({ error: 'Invalid JSON body' }, 400);
-  }
+  try { payload = await request.json(); } catch { return json({ error: 'Invalid request.' }, 400, cors); }
 
   const email = normalizeEmail(payload.email);
-  const code = normalizeCode(payload.code);
-
-  if (!email || !email.includes('@')) {
-    return json({ error: 'Enter a valid email address' }, 400);
+  if (payload.emailConsent !== true) return json({ error: 'You must agree to receive the one-time magic-link email.' }, 400, cors);
+  const signupSource = payload.context === 'ideas' ? 'ideas' : 'invite';
+  const code = normalizeCode(signupSource === 'ideas' ? ideaSignupCode : payload.code);
+  const deliveryRedirect = new URL(redirectTo);
+  if (signupSource === 'ideas') {
+    deliveryRedirect.searchParams.set('next', '/ideas');
+    deliveryRedirect.searchParams.set('restoreIdea', '1');
   }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Enter a valid email address.' }, 400, cors);
+  if (!code || !/^[a-z0-9][a-z0-9-]{3,80}$/.test(code)) return json({ error: 'This invite link is invalid.' }, 400, cors);
 
-  if (!code || !/^[a-z0-9][a-z0-9-]{3,80}$/.test(code)) {
-    return json({ error: 'Invite link is invalid' }, 400);
-  }
-
-  let invite: Invite | null = null;
+  let reserved: ReservedInvite;
   try {
-    const rows = await supabaseRequest<Invite[]>(
-      `/rest/v1/invites?code=eq.${encodeURIComponent(code)}&select=id,code,max_uses,uses_count,expires_at,revoked_at`,
-      { method: 'GET' },
-      serviceRoleKey
-    );
-    invite = rows[0] ?? null;
-  } catch {
-    return json({ error: 'Could not validate invite' }, 500);
-  }
-
-  if (!invite || invite.revoked_at) {
-    return json({ error: 'Invite link is not active' }, 403);
-  }
-
-  if (invite.expires_at && new Date(invite.expires_at).getTime() < Date.now()) {
-    return json({ error: 'Invite link has expired' }, 403);
-  }
-
-  if (invite.max_uses !== null && invite.uses_count >= invite.max_uses) {
-    return json({ error: 'Invite link has reached its limit' }, 403);
-  }
-
-  try {
-    await supabaseRequest(
-      '/rest/v1/invite_redemptions',
+    const rows = await apiRequest<ReservedInvite[]>(
+      supabaseUrl,
+      '/rest/v1/rpc/reserve_invite_for_email',
       {
         method: 'POST',
         body: JSON.stringify({
-          invite_id: invite.id,
-          email,
+          invite_code: code,
+          invite_email: email,
           request_ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
-          user_agent: request.headers.get('user-agent')
+          request_user_agent: request.headers.get('user-agent') || null
         })
       },
       serviceRoleKey
     );
-  } catch {
-    return json({ error: 'Could not record invite request' }, 500);
+    if (!rows?.[0]) throw new Error('Invite reservation failed.');
+    reserved = rows[0];
+  } catch (caught) {
+    const safe = publicInviteError(caught instanceof Error ? caught.message : '');
+    return json({ error: safe.error }, safe.status, cors);
   }
 
   try {
-    await sendMagicLink(email, code, redirectTo, anonKey);
-  } catch {
-    return json({ error: 'Could not send sign-in email' }, 500);
+    await sendInvitedLink(supabaseUrl, reserved.email, reserved.code, deliveryRedirect.toString(), anonKey, serviceRoleKey, signupSource, communityName);
+    await apiRequest(
+      supabaseUrl,
+      '/rest/v1/rpc/complete_invite_redemption',
+      { method: 'POST', body: JSON.stringify({ target_redemption_id: reserved.redemption_id }) },
+      serviceRoleKey
+    );
+  } catch (caught) {
+    console.error('Invite email request failed', caught);
+    try {
+      await apiRequest(
+        supabaseUrl,
+        '/rest/v1/rpc/fail_invite_redemption',
+        { method: 'POST', body: JSON.stringify({ target_redemption_id: reserved.redemption_id }) },
+        serviceRoleKey
+      );
+    } catch (rollbackError) {
+      console.error('Invite reservation cleanup failed', rollbackError);
+    }
+    return json({ error: 'The sign-in link could not be sent. Please try again.' }, 500, cors);
   }
 
-  await supabaseRequest(
-    `/rest/v1/invites?id=eq.${invite.id}`,
-    { method: 'PATCH', body: JSON.stringify({ uses_count: invite.uses_count + 1 }) },
-    serviceRoleKey
-  ).catch(() => null);
-
-  return json({ ok: true, message: 'Check your email for your Braga AI Builders sign-in link.' });
+  return json({ ok: true, message: signupSource === 'ideas' ? 'Check your email to finish posting your idea.' : 'Check your email for your Braga AI Builders sign-in link.' }, 200, cors);
 });

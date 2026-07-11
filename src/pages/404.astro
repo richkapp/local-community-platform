@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { communityPageTitle } from '../config/community';
+---
+<BaseLayout title={communityPageTitle('Page not found')}>
+  <section class="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 lg:px-8">
+    <p class="text-sm font-bold uppercase tracking-[0.2em] text-limewash">404</p>
+    <h1 class="mt-4 text-5xl font-bold">That page is not here.</h1>
+    <p class="mt-5 text-braga-100">The link may be old, private, or mistyped.</p>
+    <div class="mt-8 flex flex-wrap justify-center gap-4">
+      <a class="btn-primary" href="/">Go home</a>
+      <a class="btn-secondary" href="/events">Browse events</a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,27 +1,47 @@
-import type { Profile } from '@/lib/types';
+import type { IconType } from 'react-icons';
+import { FaGithub, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
+import { LuGlobe } from 'react-icons/lu';
+import type { PublicProfile } from '@/lib/types';
+import { isHttpUrl } from '@/lib/profile';
 
-type Props = {
-  profile: Pick<Profile, 'handle' | 'display_name' | 'bio' | 'avatar_url' | 'website_url' | 'linkedin_url' | 'github_url'>;
-};
+type SocialLink = { label: string; href: string; Icon: IconType };
 
-export default function ProfileCard({ profile }: Props) {
+export default function ProfileCard({ profile }: { profile: PublicProfile }) {
+  const initials = profile.display_name.slice(0, 2).toUpperCase();
+  const links = [
+    { label: 'Website', href: profile.website_url, Icon: LuGlobe },
+    { label: 'LinkedIn', href: profile.linkedin_url, Icon: FaLinkedinIn },
+    { label: 'GitHub', href: profile.github_url, Icon: FaGithub },
+    { label: 'X', href: profile.x_url, Icon: FaXTwitter }
+  ].filter((entry): entry is SocialLink => Boolean(entry.href && isHttpUrl(entry.href)));
+
+  const name = (
+    <>
+      <h2 className="text-xl font-semibold text-white">{profile.display_name}</h2>
+      {profile.handle && <p className="text-sm text-limewash">@{profile.handle}</p>}
+    </>
+  );
+
   return (
-    <article className="card p-5">
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-braga-400 font-bold text-ink-950">
-          {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : profile.display_name.slice(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <h3 className="font-bold text-white">{profile.display_name}</h3>
-          {profile.handle && <p className="text-sm text-braga-200">@{profile.handle}</p>}
-          <p className="mt-3 text-sm leading-6 text-slate-300">{profile.bio || 'Building with AI in Braga.'}</p>
-          <div className="mt-4 flex flex-wrap gap-3 text-sm text-braga-200">
-            {profile.website_url && <a href={profile.website_url}>Website</a>}
-            {profile.linkedin_url && <a href={profile.linkedin_url}>LinkedIn</a>}
-            {profile.github_url && <a href={profile.github_url}>GitHub</a>}
-          </div>
-        </div>
+    <article className="card h-full p-6">
+      <div className="flex items-center gap-4">
+        {profile.avatar_url && isHttpUrl(profile.avatar_url) ? (
+          <img src={profile.avatar_url} alt="" className="h-14 w-14 rounded-2xl object-cover" loading="lazy" />
+        ) : (
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-limewash font-bold text-ink-950" aria-hidden="true">{initials}</div>
+        )}
+        <div>{profile.handle ? <a href={`/members/${profile.handle}`} className="group hover:text-limewash">{name}</a> : name}</div>
       </div>
+      <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-braga-100">{profile.bio || 'Building with AI in Braga.'}</p>
+      {links.length > 0 && (
+        <div className="mt-5 flex flex-wrap gap-2" aria-label="Social links">
+          {links.map(({ label, href, Icon }) => (
+            <a key={label} href={href} target="_blank" rel="noreferrer noopener" aria-label={label} title={label} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-braga-300/25 bg-white/[0.03] text-braga-100 transition hover:-translate-y-0.5 hover:border-limewash/70 hover:bg-limewash/10 hover:text-limewash focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-limewash">
+              <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      )}
     </article>
   );
 }
