@@ -1,4 +1,4 @@
-project_id = "braga-ai-builders"
+project_id = "local-community-platform"
 
 [api]
 enabled = true

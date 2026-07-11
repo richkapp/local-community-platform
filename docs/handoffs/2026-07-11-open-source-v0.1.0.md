@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the release handoff for the first stable, forkable version of the local AI community platform used by Braga AI Builders.
+This is the release handoff for the first stable, forkable version of the Local Community Platform used by Braga AI Builders. AI is the reference community's theme, not a requirement of the software.
 
 ## Product state
 
@@ -20,7 +20,7 @@ This is the release handoff for the first stable, forkable version of the local 
 ## Open-source state
 
 - License: MIT.
-- Public community identity and links: `src/config/community.ts`.
+- Public community identity, theme language, and links: `src/config/community.ts`.
 - Fork setup: `docs/self-hosting.md`.
 - Deployment guide: `docs/deployment.md`.
 - Contribution rules: `CONTRIBUTING.md`.

@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
   const sourceUrl = lumaUrl(body.url);
   if (!sourceUrl) return new Response(JSON.stringify({ error: 'Enter a valid Luma event URL.' }), { status: 400 });
 
-  const response = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BragaAI-Builders/1.0)' }, redirect: 'follow' });
+  const response = await fetch(sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LocalCommunityPlatform/1.0)' }, redirect: 'follow' });
   if (!response.ok || !lumaUrl(response.url)) return new Response(JSON.stringify({ error: 'Could not load that Luma event.' }), { status: 502 });
   const html = await response.text();
   const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];

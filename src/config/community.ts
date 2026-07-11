@@ -1,9 +1,24 @@
 export const communityConfig = {
   name: 'Braga AI Builders',
   city: 'Braga',
+  tagline: 'A local AI community',
+  description: 'A Braga community for people actively using AI—from everyday ChatGPT users to advanced builders and everyone in between.',
   whatsappUrl: 'https://chat.whatsapp.com/GwhqmjtwcPT4vVmQmqqIRW',
   memberInviteCode: 'braga-group-988401a9f0d147dfa68b5c7a16e683d3d0569c18',
-  githubUrl: 'https://github.com/0rderfl0w/braga-ai-builders'
+  githubUrl: 'https://github.com/0rderfl0w/local-community-platform',
+  home: {
+    eyebrow: 'A local AI community in Braga',
+    heroTitle: 'Curious about AI? Come meet your people.',
+    heroBody: 'Maybe you use ChatGPT instead of Google. Maybe a team of AI agents runs half your business. Most of us are somewhere in between. What connects us is simple: we use AI, we’re curious about where it’s going, and we want to learn from people nearby.',
+    experienceRange: [
+      'Replacing Google searches with ChatGPT',
+      'Using AI to work smarter every day',
+      'Building products, workflows, and automations',
+      'Running a business with teams of AI agents'
+    ],
+    experienceFooter: 'If you actively use AI and want to understand it better, you belong here.',
+    closingStatement: 'Different skills. Different interests. One shared habit: actively using AI and helping each other get better at it.'
+  }
 } as const;
 
 export const memberInvitePath = `/join/${communityConfig.memberInviteCode}`;

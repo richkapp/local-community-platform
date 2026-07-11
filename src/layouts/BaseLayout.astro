@@ -11,7 +11,7 @@ interface Props {
 
 const {
   title = communityConfig.name,
-  description = `A local community for people actively using AI in ${communityConfig.city}.`
+  description = communityConfig.description
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.url.origin);
 ---

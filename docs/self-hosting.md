@@ -17,6 +17,8 @@ Fork the repository, then edit `src/config/community.ts`:
 
 - `name`: public community name
 - `city`: city or region shown on the landing page
+- `tagline` and `description`: default page title and metadata
+- `home`: theme-specific landing-page language and member perspectives
 - `whatsappUrl`: public community invitation URL
 - `memberInviteCode`: invite code used by the sign-in page
 - `githubUrl`: URL of your fork
@@ -64,7 +66,7 @@ Supabase automatically supplies its built-in project URL and keys to hosted Edge
 npx supabase secrets set \
   INVITE_REDIRECT_URL=https://YOUR_DOMAIN/auth/confirm \
   IDEA_SIGNUP_INVITE_CODE=YOUR_COMMUNITY_INVITE_CODE \
-  COMMUNITY_NAME="Your Local AI Community"
+  COMMUNITY_NAME="Your Community"
 ```
 
 Deploy both functions:

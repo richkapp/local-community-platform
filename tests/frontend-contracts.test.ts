@@ -111,9 +111,14 @@ describe('launch frontend contracts', () => {
     expect(home).toContain('Join WhatsApp Community');
     expect(home).toContain('communityConfig.whatsappUrl');
     expect(config).toContain('https://chat.whatsapp.com/GwhqmjtwcPT4vVmQmqqIRW');
-    expect(config).toContain('https://github.com/0rderfl0w/braga-ai-builders');
+    expect(config).toContain('https://github.com/0rderfl0w/local-community-platform');
+    expect(config).toContain("tagline: 'A local AI community'");
+    expect(config).toContain("heroTitle: 'Curious about AI? Come meet your people.'");
+    expect(home).toContain('communityConfig.tagline');
+    expect(home).toContain('communityConfig.description');
+    expect(home).toContain('communityConfig.home');
     expect(home).toContain('Browse Posts');
-    expect(home).toContain('Curious about AI? Come meet your people.');
+    expect(config).toContain('Curious about AI? Come meet your people.');
     expect(home).toContain('WhatsApp is the conversation. This site is the memory.');
     expect(home).toContain('Your name, attached to what you share.');
     expect(home).toContain('Anyone can browse posts, publish, and vote without an account.');

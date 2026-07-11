@@ -111,7 +111,7 @@ Deno.serve(async (request) => {
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('BRAGA_SUPABASE_SERVICE_ROLE_KEY') || '';
   const redirectTo = Deno.env.get('INVITE_REDIRECT_URL') || '';
   const ideaSignupCode = Deno.env.get('IDEA_SIGNUP_INVITE_CODE') || '';
-  const communityName = Deno.env.get('COMMUNITY_NAME') || 'Local AI Community';
+  const communityName = Deno.env.get('COMMUNITY_NAME') || 'Local Community';
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey || !redirectTo) {
     return new Response(JSON.stringify({ error: 'Invite service is not configured.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });

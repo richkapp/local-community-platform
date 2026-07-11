@@ -3,22 +3,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { communityConfig } from '../config/community';
 
 const whatsappUrl = communityConfig.whatsappUrl;
-const aiRange = [
-  'Replacing Google searches with ChatGPT',
-  'Using AI to work smarter every day',
-  'Building products, workflows, and automations',
-  'Running a business with teams of AI agents'
-];
+const home = communityConfig.home;
 ---
-<BaseLayout title={`${communityConfig.name} · A local AI community`} description={`A ${communityConfig.city} community for people actively using AI—from everyday ChatGPT users to advanced builders and everyone in between.`}>
+<BaseLayout title={`${communityConfig.name} · ${communityConfig.tagline}`} description={communityConfig.description}>
   <main>
     <section class="border-b border-white/10">
       <div class="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:px-8 lg:py-28">
         <div>
-          <p class="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-limewash">A local AI community in {communityConfig.city}</p>
-          <h1 class="max-w-4xl text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">Curious about AI? Come meet your people.</h1>
+          <p class="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-limewash">{home.eyebrow}</p>
+          <h1 class="max-w-4xl text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">{home.heroTitle}</h1>
           <p class="mt-7 max-w-3xl text-lg leading-8 text-braga-100 sm:text-xl sm:leading-9">
-            Maybe you use ChatGPT instead of Google. Maybe a team of AI agents runs half your business. Most of us are somewhere in between. What connects us is simple: we use AI, we’re curious about where it’s going, and we want to learn from people nearby.
+            {home.heroBody}
           </p>
           <div class="mt-9 flex flex-wrap gap-4">
             <a href={whatsappUrl} class="btn-primary" target="_blank" rel="noreferrer noopener">Join WhatsApp Community</a>
@@ -32,14 +27,14 @@ const aiRange = [
             <h2 class="mt-3 text-2xl font-black text-white">Different experience. Shared curiosity.</h2>
           </div>
           <ol class="divide-y divide-white/10">
-            {aiRange.map((item, index) => (
+            {home.experienceRange.map((item, index) => (
               <li class="flex items-center gap-4 px-6 py-4 sm:px-8">
                 <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-limewash/40 bg-limewash/10 text-xs font-black text-limewash">{index + 1}</span>
                 <span class="text-sm leading-6 text-braga-100">{item}</span>
               </li>
             ))}
           </ol>
-          <p class="border-t border-white/10 bg-white/[0.025] px-6 py-5 text-sm font-semibold text-white sm:px-8">If you actively use AI and want to understand it better, you belong here.</p>
+          <p class="border-t border-white/10 bg-white/[0.025] px-6 py-5 text-sm font-semibold text-white sm:px-8">{home.experienceFooter}</p>
         </aside>
       </div>
     </section>
@@ -96,7 +91,7 @@ const aiRange = [
     </section>
 
     <section class="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
-      <p class="text-2xl font-bold leading-10 text-white sm:text-3xl">Different skills. Different interests. One shared habit: actively using AI and helping each other get better at it.</p>
+      <p class="text-2xl font-bold leading-10 text-white sm:text-3xl">{home.closingStatement}</p>
     </section>
   </main>
 </BaseLayout>

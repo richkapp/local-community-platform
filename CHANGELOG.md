@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 — 2026-07-11
+
+Theme-neutral repository identity and configuration:
+
+- Renamed the open-source project from Braga AI Builders to Local Community Platform while preserving Braga AI Builders as the reference deployment.
+- Repositioned the project for any local or interest-based community, not only AI groups.
+- Moved Braga's AI-specific landing-page language into `src/config/community.ts` so forks can replace the theme without rewriting page components.
+- Updated the package name, repository links, self-hosting examples, metadata, and generic profile fallbacks.
+
 ## 0.1.1 — 2026-07-11
 
 Release-audit hardening for the first public template:

@@ -1,8 +1,8 @@
-# AGENTS.md — Local AI Community Platform
+# AGENTS.md — Local Community Platform
 
 ## Project
 
-This repository is the open-source platform used by Braga AI Builders and designed for forks by other local AI communities.
+This repository is the theme-neutral open-source platform used by Braga AI Builders and designed for forks by any local or interest-based community. Braga AI Builders is the reference deployment; AI is not a requirement of the software.
 
 Core scope:
 
@@ -23,7 +23,7 @@ Core scope:
 - Astro provides layouts and server routes; React islands handle interactive/authenticated UI.
 - Supabase provides Auth, Postgres, Row Level Security, and Edge Functions.
 - Vercel is the supported frontend host for v0.1.x. Other adapters require an explicit configuration change.
-- `src/config/community.ts` is the single source for public community identity and links.
+- `src/config/community.ts` is the single source for public community identity, theme language, and links.
 - `supabase/migrations/` is the source of truth for schema, grants, RLS, views, and RPCs.
 - Every installation owns separate provider accounts, projects, credentials, and member data.
 
