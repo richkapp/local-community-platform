@@ -1,26 +1,31 @@
-# Braga AI Builders
+# Local AI Community Platform
 
-Open-source community platform for the Braga AI Builders WhatsApp community and monthly meetups.
+The open-source platform behind [Braga AI Builders](https://braga-ai-builders.vercel.app). Fork it to give your local AI community a durable home for posts, member profiles, community-shaped events, and organizer tools without losing everything in chat.
 
-The app handles:
+## What it includes
 
-- invite-gated passwordless sign-in
-- member profiles and settings
-- a public-safe member directory
-- upvote-only ideas for future sessions
-- event pages and registrations
-- a small organizer admin surface
+- Passwordless, invite-gated member access through Supabase magic links
+- Required transactional-email consent with an explicit no-marketing promise
+- Public posts, anonymous posting and upvoting, categories, and tags
+- Optional public member profiles with author hover cards
+- Public events that send RSVP traffic to an external event page
+- Organizer tools for invites, events, post moderation, and an admin-only member database
+- Private-by-default profiles, Row Level Security, restricted RPCs, and Edge Functions
+- Astro, React, Tailwind, Supabase, Bun, and Vercel
 
-## Stack
+## Use it for your community
 
-- Astro 5
-- React islands
-- Tailwind CSS 3
-- Supabase Auth, Postgres, RLS, Storage, Edge Functions
-- Vercel for hosting
-- Bun for package management and scripts
+1. Fork this repository or click **Use this template** on GitHub.
+2. Edit [`src/config/community.ts`](src/config/community.ts) with your community name, city, WhatsApp link, invite code, and repository URL.
+3. Create your own Supabase project and apply the migrations.
+4. Configure and deploy the two Edge Functions.
+5. Deploy the frontend to your own Vercel project.
 
-## Quick start
+Every installation must use its own Supabase and Vercel projects. Forks never connect to Braga's production data.
+
+See **[Self-hosting](docs/self-hosting.md)** for the full setup, including the first invite and organizer account.
+
+## Local development
 
 ```bash
 bun install
@@ -28,25 +33,44 @@ cp .env.example .env
 bun run dev
 ```
 
-For real auth/data locally, run Supabase locally or point `.env` at a disposable Supabase project. Production credentials are maintainer-only and are not required for normal open-source contributions.
+Auth and data features require a local or disposable Supabase project. See [Local development](docs/local-development.md).
 
-## Scripts
+## Configuration
 
-```bash
-bun run dev      # local dev server
-bun run check    # Astro/TypeScript checks
-bun test         # static project safety tests
-bun run build    # check + production build
-bun run verify   # tests + build
+Public community identity lives in one tracked file:
+
+```ts
+// src/config/community.ts
+export const communityConfig = {
+  name: 'Your Local AI Community',
+  city: 'Your City',
+  whatsappUrl: 'https://chat.whatsapp.com/...',
+  memberInviteCode: 'your-community-invite',
+  githubUrl: 'https://github.com/you/your-community-platform'
+};
 ```
 
-## Production services
+Browser-safe Supabase settings belong in `.env`; Edge Function secrets belong in Supabase. Never commit service-role keys, database passwords, deployment tokens, or production `.env` files.
 
-- Supabase account for this project: `bragabuilders.bash197@passinbox.com`
-- Vercel account for this project: `zkapp@pm.me`
+## Commands
 
-Do not use Z's Hetzner server as the normal contributor or production backend. The repo should remain portable: schema and security policy live in migrations, not in undocumented dashboard state.
+```bash
+bun run dev      # local development server
+bun run check    # Astro and TypeScript diagnostics
+bun test         # contract and security tests
+bun run build    # diagnostics plus production build
+bun run verify   # complete verification gate
+```
+
+## Documentation
+
+- [Self-hosting](docs/self-hosting.md)
+- [Local development](docs/local-development.md)
+- [Deployment](docs/deployment.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 
-MIT
+[MIT](LICENSE). You may use, modify, host, and redistribute the platform, including for commercial purposes, subject to the license notice.

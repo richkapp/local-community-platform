@@ -1,46 +1,53 @@
 # Deployment
 
+Production deployments use Supabase for Auth/Postgres/Edge Functions and Vercel for the Astro frontend. Each community owns separate projects and data.
+
+## Release gate
+
+```bash
+bun install --frozen-lockfile
+bun run verify
+```
+
+Do not deploy when this command fails.
+
 ## Supabase
 
-1. Create a Supabase project under `bragabuilders.bash197@passinbox.com`.
-2. Apply migrations from `supabase/migrations/`.
-3. Seed initial data if needed with `supabase/seed.sql`.
-4. Deploy `request-invite-magic-link`.
-5. Set Edge Function secrets:
-   - `BRAGA_SUPABASE_URL`
-   - `BRAGA_SUPABASE_ANON_KEY`
-   - `BRAGA_SUPABASE_SERVICE_ROLE_KEY`
-   - `INVITE_REDIRECT_URL`
+```bash
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+npx supabase secrets set \
+  INVITE_REDIRECT_URL=https://YOUR_DOMAIN/auth/confirm \
+  IDEA_SIGNUP_INVITE_CODE=YOUR_COMMUNITY_INVITE_CODE \
+  COMMUNITY_NAME="Your Local AI Community"
+npx supabase functions deploy request-invite-magic-link --no-verify-jwt
+npx supabase functions deploy anonymous-ideas --no-verify-jwt
+```
 
-Current production project:
-
-- Project ref: `ygihxknsnrngcvrvdxzl`
-- Region: `eu-west-3`
-- Invite function: `request-invite-magic-link`
-- Default invite route: `/join/braga-whatsapp`
-
-The function also supports Supabase's built-in `SUPABASE_*` env names when present, but the hosted project uses the `BRAGA_SUPABASE_*` secrets because custom Supabase Edge Function secrets cannot start with `SUPABASE_`.
+Use exact trusted Auth redirect URLs. Keep service-role credentials inside Supabase; never send them to the browser or Vercel frontend environment.
 
 ## Vercel
 
-1. Create/link the project under `zkapp@pm.me`.
-2. Set public env vars:
-   - `PUBLIC_SUPABASE_URL`
-   - `PUBLIC_SUPABASE_ANON_KEY`
-   - `PUBLIC_SITE_URL`
-3. Build command: `bun run build`.
-4. Install command: `bun install`.
-5. Deploy and verify `/`, `/join/braga-whatsapp`, `/ideas`, and `/events`.
+Set:
 
-Current production project:
+- `PUBLIC_SUPABASE_URL`
+- `PUBLIC_SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_URL`
 
-- Team: `Braga AI Builders` (`braga-ai-builders`)
-- Project: `braga-ai-builders`
-- Expected production URL: `https://braga-ai-builders.vercel.app`
-- Framework preset: Astro
-- Install command: `bun install`
-- Build command: `bun run build`
-- Current deployment path: Vercel CLI with the signed-in `zkapp@pm.me` browser session token.
-- GitHub auto-deploy status: not connected yet. `vercel git connect` returned `You need to add a Login Connection to your GitHub account first.` Add the GitHub login connection in Vercel, then run `vercel git connect git@github.com:0rderfl0w/braga-ai-builders.git` from this repo.
+Use `bun install` and `bun run build`. Connect the public GitHub repository so merged `main` commits are the production source of truth.
 
-Do not deploy this on Z's Hetzner server as the normal production target.
+## Production smoke checks
+
+Check these after every release:
+
+- `/` returns `200` and the WhatsApp/GitHub links are correct.
+- `/ideas` loads posts and author profile links.
+- `/events` loads published events and external RSVP links.
+- `/members` exposes only opted-in public profiles.
+- `/signin` requires email consent before requesting a magic link.
+- `/admin` rejects non-admin users.
+- `/admin/members` exposes the full member database only to admins.
+- `/join` returns `404`; only configured coded invite routes are valid.
+- `/admin/registrations` returns `404`.
+
+Never test production email delivery with disposable or non-deliverable addresses. Use a controlled deliverable inbox only with explicit approval.
