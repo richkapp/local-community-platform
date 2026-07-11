@@ -111,7 +111,7 @@ describe('launch frontend contracts', () => {
     expect(home).toContain('Join WhatsApp Community');
     expect(home).toContain('communityConfig.whatsappUrl');
     expect(config).toContain('https://chat.whatsapp.com/GwhqmjtwcPT4vVmQmqqIRW');
-    expect(config).toContain('https://github.com/0rderfl0w/local-community-platform');
+    expect(config).toContain('https://github.com/richkapp/local-community-platform');
     expect(config).toContain("tagline: 'A local AI community'");
     expect(config).toContain("heroTitle: 'Curious about AI? Come meet your people.'");
     expect(home).toContain('communityConfig.tagline');
@@ -128,8 +128,10 @@ describe('launch frontend contracts', () => {
     expect(authStatus).toContain('Sign In');
     expect(members).toContain('Become a Member');
     expect(members).toContain('memberInvitePath');
-    expect(footer).toContain('This community platform is open source.');
-    expect(footer).toContain('Fork it for your local community on GitHub');
+    expect(footer).toContain('This site is powered by');
+    expect(footer).toContain('Local Community Platform');
+    expect(footer).toContain('an open-source platform for managing local communities.');
+    expect(footer).toContain('text-limewash underline');
     await expect(access(new URL('src/pages/join.astro', root))).rejects.toThrow();
   });
 
