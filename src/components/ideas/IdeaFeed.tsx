@@ -3,7 +3,7 @@ import { LuCheck, LuInfo, LuPencil, LuTrash2 } from 'react-icons/lu';
 import type { FormSubmitEvent } from '@/lib/dom';
 import { supabase } from '@/lib/supabase';
 import { toUserMessage } from '@/lib/errors';
-import { attachPublicAuthors, updateOwnIdea } from '@/lib/ideas';
+import { attachPublicAuthors, PUBLIC_IDEA_COLUMNS, updateOwnIdea } from '@/lib/ideas';
 import { RIP_CATEGORIES, RIP_TAGS, ripCategoryLabel, ripTagLabel } from '@/lib/rips';
 import { deleteIdea, isCurrentUserAdmin, updateIdeaStatus } from '@/lib/admin';
 import type { Event, Idea, RipCategory, RipTag } from '@/lib/types';
@@ -82,7 +82,7 @@ export default function IdeaFeed() {
     setLoading(true); setError('');
     try {
       const [ideaResponse, userResponse, admin, eventResponse] = await Promise.all([
-        supabase.from('ideas').select('*').neq('status', 'hidden').order('created_at', { ascending: false }),
+        supabase.from('ideas').select(PUBLIC_IDEA_COLUMNS).neq('status', 'hidden').order('created_at', { ascending: false }),
         supabase.auth.getUser(),
         isCurrentUserAdmin(),
         supabase.from('events').select('*').in('status', ['published', 'completed']).gte('starts_at', new Date().toISOString()).order('starts_at', { ascending: true }).limit(1).maybeSingle()

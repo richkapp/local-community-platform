@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.1 — 2026-07-11
+
+Release-audit hardening for the first public template:
+
+- Removed stable anonymous visitor identifiers from public post reads.
+- Made external-event attendee counts private.
+- Fixed invite-capacity checks so exhausted retries fail before email delivery.
+- Aligned authentication, external-RSVP, and historical-audit documentation with the live product.
+- Added the missing idea-account invite environment variable to the setup template.
+- Pinned Bun and direct dependencies and documented frozen-lockfile installs.
+- Made the canonical site URL configurable through `PUBLIC_SITE_URL`.
+
 ## 0.1.0 — 2026-07-11
 
 First stable open-source release of the platform running Braga AI Builders.

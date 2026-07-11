@@ -4,7 +4,7 @@ The open-source platform behind [Braga AI Builders](https://braga-ai-builders.ve
 
 ## What it includes
 
-- Passwordless, invite-gated member access through Supabase magic links
+- Passwordless member access through Supabase magic links and a configured community-access code
 - Required transactional-email consent with an explicit no-marketing promise
 - Public posts, anonymous posting and upvoting, categories, and tags
 - Optional public member profiles with author hover cards

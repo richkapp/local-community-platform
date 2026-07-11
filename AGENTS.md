@@ -6,7 +6,7 @@ This repository is the open-source platform used by Braga AI Builders and design
 
 Core scope:
 
-- invite-gated, passwordless email magic-link authentication;
+- configurable community-access, passwordless email magic-link authentication;
 - member profiles, settings, and a public-safe member directory;
 - public posts with upvote-only voting, categories, and tags;
 - external community event pages;
@@ -22,7 +22,7 @@ Core scope:
 
 - Astro provides layouts and server routes; React islands handle interactive/authenticated UI.
 - Supabase provides Auth, Postgres, Row Level Security, and Edge Functions.
-- Vercel is the reference frontend host, but forks may use another Astro-compatible host.
+- Vercel is the supported frontend host for v0.1.x. Other adapters require an explicit configuration change.
 - `src/config/community.ts` is the single source for public community identity and links.
 - `supabase/migrations/` is the source of truth for schema, grants, RLS, views, and RPCs.
 - Every installation owns separate provider accounts, projects, credentials, and member data.
@@ -30,7 +30,7 @@ Core scope:
 ## Product and security rules
 
 - Keep profiles private by default and separate public profile fields from private account data.
-- Do not add password authentication; use invite-gated email magic links.
+- Do not add password authentication; use the configured community-access magic-link flow.
 - Require explicit consent before sending a transactional login/signup email.
 - Do not use member emails for marketing.
 - Keep post voting upvote-only.

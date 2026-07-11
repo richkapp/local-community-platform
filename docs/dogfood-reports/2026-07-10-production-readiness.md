@@ -2,6 +2,8 @@
 
 > End-to-end production audit of `https://braga-ai-builders.vercel.app` plus security probes against the linked Supabase production project. Started 2026-07-10.
 
+> **Historical pre-fix baseline:** the failures and “Not ready to ship” conclusion below describe the 2026-07-10 production snapshot, not current `main`. The fixes and current verification are documented in `docs/handoffs/2026-07-11-open-source-v0.1.1.md`.
+
 ## Audit Scope
 
 - Public routes: home, join, ideas, events, members, settings, admin, detail routes, invalid routes, and auth callback.

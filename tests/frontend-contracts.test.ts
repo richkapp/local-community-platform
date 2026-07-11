@@ -23,7 +23,9 @@ describe('launch frontend contracts', () => {
     expect(authorPreview).toContain('FaXTwitter');
     expect(authorPreview).toContain('LuGlobe');
     expect(feed).not.toContain('profiles!ideas_author_id_fkey');
-    expect(await read('src/lib/admin.ts')).toContain('profiles!ideas_author_id_fkey');
+    const admin = await read('src/lib/admin.ts');
+    expect(admin).toContain('attachPublicAuthors');
+    expect(admin).not.toContain('profiles!ideas_author_id_fkey');
   });
 
   test('member details use the dedicated profile component', async () => {

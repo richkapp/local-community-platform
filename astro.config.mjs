@@ -10,5 +10,5 @@ export default defineConfig({
     react(),
     tailwind({ applyBaseStyles: false })
   ],
-  site: 'https://braga-ai-builders.vercel.app'
+  site: process.env.PUBLIC_SITE_URL || 'http://localhost:4321'
 });
