@@ -25,19 +25,23 @@ npx supabase functions deploy anonymous-ideas --no-verify-jwt
 npx supabase functions deploy bug-reports --no-verify-jwt
 ```
 
-Configure the database-triggered bug-report notification in Supabase Vault after migrations are applied:
+Bug-report email is optional. Without the Vault values below, reports still save and remain available at `/admin/bug-reports`; only outbound email is skipped.
+
+For Resend's free no-domain mode, configure Supabase Vault after migrations are applied:
 
 ```sql
 select vault.create_secret('YOUR_RESEND_API_KEY', 'RESEND_API_KEY', 'Bug-report notification provider key');
-select vault.create_secret('organizer@example.com', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
-select vault.create_secret('Your Community <noreply@YOUR_VERIFIED_DOMAIN>', 'BUG_REPORT_FROM_EMAIL', 'Verified bug-report sender');
+select vault.create_secret('YOUR_RESEND_ACCOUNT_EMAIL', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
+select vault.create_secret('Local Community Platform <onboarding@resend.dev>', 'BUG_REPORT_FROM_EMAIL', 'Shared no-domain sender');
 select vault.create_secret('https://YOUR_DOMAIN/admin/bug-reports', 'BUG_REPORT_ADMIN_URL', 'Bug-report review URL');
 select vault.create_secret('Your Community', 'COMMUNITY_NAME', 'Notification subject label');
 ```
 
-Vault secret names are unique. Use `vault.update_secret(...)` rather than creating a duplicate when rotating a value. Migration `022_bug_report_notifications.sql` queues an asynchronous, report-scoped idempotent Resend request from the database insert boundary, so direct trusted inserts and Edge Function submissions follow the same delivery path.
+In no-domain mode, `YOUR_RESEND_ACCOUNT_EMAIL` must exactly match the email attached to the Resend account. Resend blocks other recipients when `onboarding@resend.dev` is used. For branded sending or additional recipients, verify the installation's own domain and replace `BUG_REPORT_FROM_EMAIL` with `Your Community <noreply@YOUR_VERIFIED_DOMAIN>`.
 
-Use exact trusted Auth redirect URLs. Keep service-role credentials inside Supabase; never send them to the browser or Vercel frontend environment. Bug-report notification email is optional for forks; when enabled, use a verified Resend sending domain and a controlled organizer inbox.
+Vault secret names are unique. Use `vault.update_secret(...)` rather than creating a duplicate when rotating a value. Migration `022_bug_report_notifications.sql` queues an asynchronous, report-scoped idempotent Resend request from the database insert boundary, so direct trusted inserts and Edge Function submissions follow the same delivery path. See [Self-hosting: Optional bug-report email](self-hosting.md#optional-bug-report-email) for current free-plan limits and Resend's official restrictions.
+
+Use exact trusted Auth redirect URLs. Keep service-role credentials inside Supabase; never send them to the browser or Vercel frontend environment. Every installation must use its own Resend account and credentials when notification email is enabled.
 
 The first organizer must be bootstrapped as `super_admin` through a trusted SQL maintenance session. Super admins can assign ordinary admins, suspend or restore accounts, and permanently delete members. Ordinary admins retain organizer tools but cannot manage member access.
 

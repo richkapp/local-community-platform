@@ -9,7 +9,7 @@ This guide creates an independent installation for one local community. It does 
 - A GitHub account
 - A Supabase project
 - A Vercel project
-- A Resend account with a verified sending domain if bug-report notifications are enabled
+- A Resend account if bug-report email notifications are enabled; a verified domain is optional for own-address testing mode and required for branded sending or other recipients
 - Supabase CLI access through `npx supabase`
 
 ## 1. Fork and configure the community
@@ -80,17 +80,59 @@ npx supabase functions deploy bug-reports --no-verify-jwt
 
 These functions intentionally accept requests without a user JWT. They enforce trusted origins, validate payloads, and perform privileged writes server-side. Keep their service-role access inside Supabase.
 
-Configure optional bug-report notifications in Supabase Vault:
+### Optional bug-report email
+
+Email alerts are not required. Without the Vault secrets below, bug reports still save normally and remain available at `/admin/bug-reports`; only outbound email is skipped.
+
+The notification trigger uses Resend. Create a [separate Resend account](https://resend.com/signup) for the installation and [generate an API key](https://resend.com/docs/dashboard/api-keys/introduction). Never copy credentials from another community or commit the key to Git.
+
+#### Free no-domain setup
+
+Resend allows `onboarding@resend.dev` without domain verification, but only for messages sent to the email address attached to that Resend account. Resend describes this as testing mode. It is a practical zero-DNS option when one community owner receives every bug-report alert.
+
+At the time of writing, a free Resend account includes:
+
+- 100 emails per day;
+- 3,000 emails per month;
+- use of the shared `resend.dev` sender for the account owner's address;
+- one verified domain if the community later needs branded sending or additional recipients.
+
+Check [Resend's current quotas](https://resend.com/docs/knowledge-base/account-quotas-and-limits) before relying on these numbers. The [`resend.dev` restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain) is enforced by Resend.
+
+Run this in the Supabase SQL editor, replacing the recipient and domain placeholders:
 
 ```sql
 select vault.create_secret('YOUR_RESEND_API_KEY', 'RESEND_API_KEY', 'Bug-report notification provider key');
-select vault.create_secret('organizer@example.com', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
-select vault.create_secret('Your Community <noreply@YOUR_VERIFIED_DOMAIN>', 'BUG_REPORT_FROM_EMAIL', 'Verified bug-report sender');
+select vault.create_secret('YOUR_RESEND_ACCOUNT_EMAIL', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
+select vault.create_secret('Local Community Platform <onboarding@resend.dev>', 'BUG_REPORT_FROM_EMAIL', 'Shared no-domain sender');
 select vault.create_secret('https://YOUR_DOMAIN/admin/bug-reports', 'BUG_REPORT_ADMIN_URL', 'Bug-report review URL');
 select vault.create_secret('Your Community', 'COMMUNITY_NAME', 'Notification subject label');
 ```
 
-Migration `022_bug_report_notifications.sql` queues the Resend request through `pg_net` when the database inserts a report. Provider configuration or delivery failure never rolls back the stored report. Rotate existing values with `vault.update_secret(...)`; do not create duplicate secret names.
+`YOUR_RESEND_ACCOUNT_EMAIL` must exactly match the address on the Resend account in no-domain mode. Sending to another organizer or distribution list will fail.
+
+#### Verified-domain setup
+
+To send from the community's identity or notify addresses other than the Resend account owner, [add and verify a domain](https://resend.com/docs/dashboard/domains/introduction). During initial setup, replace the no-domain `BUG_REPORT_FROM_EMAIL` line with:
+
+```sql
+select vault.create_secret('Your Community <noreply@YOUR_VERIFIED_DOMAIN>', 'BUG_REPORT_FROM_EMAIL', 'Verified bug-report sender');
+```
+
+If the shared sender is already configured, update it instead:
+
+```sql
+select vault.update_secret(
+  secret_id := (select id from vault.secrets where name = 'BUG_REPORT_FROM_EMAIL'),
+  new_secret := 'Your Community <noreply@YOUR_VERIFIED_DOMAIN>',
+  new_name := 'BUG_REPORT_FROM_EMAIL',
+  new_description := 'Verified bug-report sender'
+);
+```
+
+The remaining Vault secrets are the same. Vault secret names are unique; use `vault.update_secret(...)` when rotating any existing value instead of creating a duplicate.
+
+Migration `022_bug_report_notifications.sql` queues an idempotent Resend request through `pg_net` when the database inserts a report. Provider configuration or delivery failure never rolls back the stored report.
 
 ## 5. Configure the frontend
 
