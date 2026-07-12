@@ -29,6 +29,12 @@ Every installation must use its own Supabase and Vercel projects. Forks never co
 
 See **[Self-hosting](docs/self-hosting.md)** for the full setup, including the first invite and organizer account.
 
+### Optional bug-report email
+
+Bug reports are always stored in Supabase and available to organizers at `/admin/bug-reports`. Email alerts are optional and use Resend through a database trigger; the platform does not contain or inherit Braga's credentials.
+
+A fork can use a free Resend account without configuring a domain by sending from `Local Community Platform <onboarding@resend.dev>` to the email address attached to that same Resend account. Resend treats this as testing mode and blocks other recipients until the installation verifies its own domain. See the [self-hosting notification setup](docs/self-hosting.md#optional-bug-report-email) for Vault configuration, current free-plan limits, and the verified-domain path.
+
 ## Local development
 
 ```bash
@@ -64,7 +70,7 @@ export const communityConfig = {
 };
 ```
 
-Browser-safe Supabase settings belong in `.env`; Edge Function secrets belong in Supabase. Never commit service-role keys, database passwords, deployment tokens, or production `.env` files.
+Browser-safe Supabase settings belong in `.env`; Edge Function secrets and notification credentials belong in Supabase's secret stores. Never commit service-role keys, database passwords, deployment tokens, provider API keys, or production `.env` files.
 
 ## Commands
 
