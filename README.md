@@ -4,6 +4,8 @@ An open-source platform that gives local and interest-based communities a durabl
 
 [Braga AI Builders](https://braga-ai-builders.vercel.app) is the reference deployment. AI is that community's theme, not a requirement of the software. A neighborhood association, creative collective, professional network, book club, mutual-aid group, or any other community can configure the same platform around its own identity and purpose.
 
+Local Community Platform is the canonical upstream repository. Braga is maintained in a [separate downstream repository](https://github.com/richkapp/braga-ai-builders), so platform development does not automatically change the live Braga community. Reusable Braga-born features can be generalized and proposed upstream; Braga receives upstream releases through reviewed sync pull requests. See [Upstream and Braga downstream](docs/upstream-downstream.md).
+
 ## What it includes
 
 - Passwordless member access through Supabase magic links and a configured community-access code
@@ -85,6 +87,7 @@ bun run verify   # complete verification gate
 ## Documentation
 
 - [Self-hosting](docs/self-hosting.md)
+- [Upstream and Braga downstream](docs/upstream-downstream.md)
 - [Local development](docs/local-development.md)
 - [Deployment](docs/deployment.md)
 - [Contributing](CONTRIBUTING.md)

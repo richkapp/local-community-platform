@@ -4,6 +4,8 @@
 
 This repository is the theme-neutral open-source platform used by Braga AI Builders and designed for forks by any local or interest-based community. Braga AI Builders is the reference deployment; AI is not a requirement of the software.
 
+This repository is the canonical upstream. The live Braga deployment is maintained separately at `richkapp/braga-ai-builders` and receives upstream changes only through reviewed sync pull requests. Braga-specific experiments belong downstream; only generalized, configurable features belong here.
+
 Core scope:
 
 - configurable community-access, passwordless email magic-link authentication;
@@ -53,6 +55,9 @@ bun run verify
 ## Delivery
 
 - Use feature branches and pull requests; do not push application work directly to `main`.
+- Keep upstream changes theme-neutral. Do not merge Braga's downstream `main` into this repository.
+- When promoting a Braga-born feature upstream, remove Braga assumptions, add generic configuration and safe defaults, and document the reusable community problem.
+- Treat optional external services as disabled until each installation supplies its own configuration.
 - `bun run verify` is the required merge gate.
 - Keep contributor and self-hosting docs aligned with environment, schema, or deployment changes.
 - Verify deployed routes and authorization boundaries before reporting a release complete.

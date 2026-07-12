@@ -2,13 +2,22 @@
 
 Thanks for helping local and interest-based communities keep their knowledge, people, and events accessible outside chat.
 
+## Choose the right repository
+
+This repository is the canonical, theme-neutral upstream. Changes here should solve a reusable community-platform problem and avoid Braga-specific copy, policy, or operational assumptions.
+
+Braga AI Builders is maintained in [`richkapp/braga-ai-builders`](https://github.com/richkapp/braga-ai-builders). Build Braga-only experiments there first. When one proves broadly useful, generalize it, make installation-level choices configurable, and open a focused pull request here. Do not merge the entire Braga downstream branch upstream.
+
+See [Upstream and Braga downstream](docs/upstream-downstream.md) for feature ownership, optional-feature rules, and the sync workflow.
+
 ## Before opening a pull request
 
 1. Fork the repository and create a focused branch.
 2. Keep community-specific values in `src/config/community.ts`; do not hardcode them throughout the app.
 3. Put schema, grants, policies, and RPC changes in forward-only files under `supabase/migrations/`.
 4. Add or update tests for observable behavior and security boundaries.
-5. Run:
+5. For optional features, preserve existing behavior by default and keep external-service configuration opt-in.
+6. Run:
 
 ```bash
 bun install --frozen-lockfile
