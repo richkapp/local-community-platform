@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Repository governance and downstream separation:
+
+- Established Local Community Platform as the canonical theme-neutral upstream and moved the live Braga deployment source to `richkapp/braga-ai-builders`.
+- Preserved shared Git history while keeping Braga as a separately reviewed downstream rather than an automatically synchronized deployment.
+- Documented where features belong, how Braga-born features are generalized upstream, and how upstream releases are synced back without moving credentials or production data.
+
 ## 0.1.2 — 2026-07-11
 
 Theme-neutral repository identity and configuration:

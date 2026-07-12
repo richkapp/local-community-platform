@@ -9,6 +9,8 @@ Local Community Platform and Braga AI Builders have separate jobs:
 
 The repositories share Git history from the split point, but Braga is maintained as a separate downstream repository rather than an automatically synchronized deployment. Braga receives upstream changes only through reviewed pull requests.
 
+GitHub does not support creating a differently named fork under the same owner, so Braga is intentionally a separate shared-history repository with an explicit `upstream` remote rather than a GitHub network fork.
+
 ## Where a change belongs
 
 Build directly in Local Community Platform when the change:
@@ -89,4 +91,5 @@ When conflicts occur, preserve intentional Braga configuration while taking the 
 - Braga may receive an emergency downstream fix first, but the reusable fix must be proposed upstream afterward.
 - Each repository keeps protected `main`, required verification, and reviewable pull requests.
 - Braga production credentials, Supabase data, Vercel settings, and provider keys remain downstream infrastructure. They are never copied into Local Community Platform or any fork.
+- The Braga Vercel production project connects to `richkapp/braga-ai-builders`, never this upstream repository.
 - A successful Git merge does not prove a deployment or migration succeeded; verify Braga production separately.

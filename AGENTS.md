@@ -27,6 +27,8 @@ Core scope:
 - Vercel is the supported frontend host for v0.1.x. Other adapters require an explicit configuration change.
 - `src/config/community.ts` is the single source for public community identity, theme language, and links.
 - `supabase/migrations/` is the source of truth for schema, grants, RLS, views, and RPCs.
+- Braga is a separate shared-history repository, not a GitHub network fork. GitHub does not support creating a differently named fork under the same owner.
+- No Braga Vercel production project should be connected to this upstream repository; production deploys only from the downstream repository.
 - Every installation owns separate provider accounts, projects, credentials, and member data.
 
 ## Product and security rules
@@ -60,5 +62,6 @@ bun run verify
 - Treat optional external services as disabled until each installation supplies its own configuration.
 - `bun run verify` is the required merge gate.
 - Keep contributor and self-hosting docs aligned with environment, schema, or deployment changes.
+- Never treat an upstream merge as a Braga deployment. Braga must sync through a downstream pull request and verify its own Vercel production deployment separately.
 - Verify deployed routes and authorization boundaries before reporting a release complete.
 - Production email tests require explicit approval and a controlled deliverable inbox; never use disposable or non-deliverable addresses.
