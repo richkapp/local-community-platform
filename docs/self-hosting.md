@@ -67,10 +67,7 @@ Supabase automatically supplies its built-in project URL and keys to hosted Edge
 npx supabase secrets set \
   INVITE_REDIRECT_URL=https://YOUR_DOMAIN/auth/confirm \
   IDEA_SIGNUP_INVITE_CODE=YOUR_COMMUNITY_INVITE_CODE \
-  COMMUNITY_NAME="Your Community" \
-  RESEND_API_KEY=YOUR_RESEND_API_KEY \
-  BUG_REPORT_NOTIFICATION_EMAIL=organizer@example.com \
-  BUG_REPORT_FROM_EMAIL="Your Community <noreply@YOUR_VERIFIED_DOMAIN>"
+  COMMUNITY_NAME="Your Community"
 ```
 
 Deploy all three functions:
@@ -81,7 +78,19 @@ npx supabase functions deploy anonymous-ideas --no-verify-jwt
 npx supabase functions deploy bug-reports --no-verify-jwt
 ```
 
-These functions intentionally accept requests without a user JWT. They enforce trusted origins, validate payloads, and perform privileged writes server-side. Keep their service-role access inside Supabase. `RESEND_API_KEY`, `BUG_REPORT_NOTIFICATION_EMAIL`, and `BUG_REPORT_FROM_EMAIL` are optional for forks; when all three are configured, each stored bug report sends an idempotent organizer notification.
+These functions intentionally accept requests without a user JWT. They enforce trusted origins, validate payloads, and perform privileged writes server-side. Keep their service-role access inside Supabase.
+
+Configure optional bug-report notifications in Supabase Vault:
+
+```sql
+select vault.create_secret('YOUR_RESEND_API_KEY', 'RESEND_API_KEY', 'Bug-report notification provider key');
+select vault.create_secret('organizer@example.com', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
+select vault.create_secret('Your Community <noreply@YOUR_VERIFIED_DOMAIN>', 'BUG_REPORT_FROM_EMAIL', 'Verified bug-report sender');
+select vault.create_secret('https://YOUR_DOMAIN/admin/bug-reports', 'BUG_REPORT_ADMIN_URL', 'Bug-report review URL');
+select vault.create_secret('Your Community', 'COMMUNITY_NAME', 'Notification subject label');
+```
+
+Migration `022_bug_report_notifications.sql` queues the Resend request through `pg_net` when the database inserts a report. Provider configuration or delivery failure never rolls back the stored report. Rotate existing values with `vault.update_secret(...)`; do not create duplicate secret names.
 
 ## 5. Configure the frontend
 

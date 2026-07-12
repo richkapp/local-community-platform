@@ -18,6 +18,7 @@
 - Events are public listings that send RSVP traffic to external event pages.
 - Legacy event-registration tables and functions are not part of the user-facing product and attendee counts are not public.
 - Organizers alone can manage invites, events, post lifecycle state, bug reports, and the full member directory.
+- Bug-report notifications are queued from the database insert boundary through `pg_net`; Resend credentials stay in Supabase Vault, and notification failure does not roll back the report.
 - Only super admins can assign or remove admin access, suspend or restore members, and permanently delete member accounts. The RPC boundary blocks self-management and changes to another super-admin account.
 - Visitors can read only published or explicitly public data.
 

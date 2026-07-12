@@ -148,6 +148,7 @@ describe('delivery security contracts', () => {
 
   test('bug reports use a rate-limited Edge Function and admin-only data access', async () => {
     const migration = await read('supabase/migrations/019_bug_reports.sql');
+    const notifications = await read('supabase/migrations/022_bug_report_notifications.sql');
     const edge = await read('supabase/functions/bug-reports/index.ts');
     const config = await read('supabase/config.toml');
     expect(migration).toContain('create table public.bug_reports');
@@ -175,14 +176,14 @@ describe('delivery security contracts', () => {
     expect(edge).toContain("typeof parsed !== 'object' || Array.isArray(parsed)");
     expect(edge).toContain('allowedOrigins.has(parsed.origin)');
     expect(edge).toContain('not part of this community site');
-    expect(edge).toContain("fetch('https://api.resend.com/emails'");
-    expect(edge).toContain('signal: AbortSignal.timeout(5_000)');
-    expect(edge).toContain("'Idempotency-Key': `bug-report/${input.reportId}`");
-    expect(edge).toContain('escapeHtml(input.description)');
-    expect(edge).toContain("Deno.env.get('BUG_REPORT_NOTIFICATION_EMAIL')");
-    expect(edge).toContain("Deno.env.get('BUG_REPORT_FROM_EMAIL')");
-    expect(edge).toContain('notificationSent');
-    expect(edge).toContain("console.error('Bug-report email notification failed'");
+    expect(notifications).toContain('create extension if not exists pg_net');
+    expect(notifications).toContain('before insert on public.bug_reports');
+    expect(notifications).toContain("url := 'https://api.resend.com/emails'");
+    expect(notifications).toContain("'Idempotency-Key', 'bug-report/' || new.id");
+    expect(notifications).toContain("where name = 'RESEND_API_KEY'");
+    expect(notifications).toContain('exception\n  when others then');
+    expect(notifications).toContain('revoke all on function public.enqueue_bug_report_notification() from public, anon, authenticated');
+    expect(edge).not.toContain('RESEND_API_KEY');
     expect(edge).not.toContain("'Access-Control-Allow-Origin': '*'");
     expect(config).toContain('[functions.bug-reports]');
     expect(config).toContain('verify_jwt = false');

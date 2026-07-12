@@ -73,77 +73,6 @@ function publicError(message: string) {
   return { status: 500, error: 'The bug report could not be sent. Please try again.' };
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>'"]/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;'
-  })[character] || character);
-}
-
-async function sendBugReportNotification(input: {
-  reportId: string;
-  name: string;
-  email: string;
-  description: string;
-  pageUrl: string;
-  communityName: string;
-  adminUrl: string;
-  resendApiKey: string;
-  notificationEmail: string;
-  fromEmail: string;
-}) {
-  if (!input.resendApiKey || !input.notificationEmail || !input.fromEmail) {
-    console.error('Bug-report email notification is not configured.');
-    return false;
-  }
-
-  const sharedName = input.name || 'Not shared';
-  const sharedEmail = input.email || 'Not shared';
-  const reportedPage = input.pageUrl || 'Not shared';
-  const payload = {
-    from: input.fromEmail,
-    to: [input.notificationEmail],
-    ...(input.email ? { reply_to: input.email } : {}),
-    subject: `New bug report · ${input.communityName}`,
-    text: [
-      `New bug report for ${input.communityName}`,
-      '',
-      `Name: ${sharedName}`,
-      `Email: ${sharedEmail}`,
-      `Page: ${reportedPage}`,
-      '',
-      input.description,
-      '',
-      `Review report: ${input.adminUrl}`
-    ].join('\n'),
-    html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#14221a;line-height:1.6"><h1 style="font-size:24px">New bug report</h1><p><strong>Community:</strong> ${escapeHtml(input.communityName)}</p><p><strong>Name:</strong> ${escapeHtml(sharedName)}<br><strong>Email:</strong> ${escapeHtml(sharedEmail)}<br><strong>Page:</strong> ${escapeHtml(reportedPage)}</p><div style="margin:24px 0;padding:18px;border-radius:12px;background:#f3f7f4;white-space:pre-wrap">${escapeHtml(input.description)}</div><p><a href="${escapeHtml(input.adminUrl)}">Review this report in the admin panel →</a></p></body></html>`
-  };
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      signal: AbortSignal.timeout(5_000),
-      headers: {
-        Authorization: `Bearer ${input.resendApiKey}`,
-        'Content-Type': 'application/json',
-        'Idempotency-Key': `bug-report/${input.reportId}`
-      },
-      body: JSON.stringify(payload)
-    });
-    if (response.ok) return true;
-
-    const retryable = response.status === 429 || response.status >= 500;
-    const responseText = await response.text();
-    if (!retryable || attempt === 2) throw new Error(`Resend ${response.status}: ${responseText.slice(0, 500)}`);
-    await new Promise((resolve) => setTimeout(resolve, 250 * (2 ** attempt)));
-  }
-
-  return false;
-}
-
 async function apiRequest<T>(supabaseUrl: string, path: string, body: Record<string, unknown>, serviceRoleKey: string) {
   const response = await fetch(`${supabaseUrl}${path}`, {
     method: 'POST',
@@ -170,10 +99,6 @@ Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('BRAGA_SUPABASE_URL') || '';
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('BRAGA_SUPABASE_SERVICE_ROLE_KEY') || '';
   const redirectTo = Deno.env.get('INVITE_REDIRECT_URL') || '';
-  const resendApiKey = Deno.env.get('RESEND_API_KEY') || '';
-  const notificationEmail = Deno.env.get('BUG_REPORT_NOTIFICATION_EMAIL') || '';
-  const fromEmail = Deno.env.get('BUG_REPORT_FROM_EMAIL') || '';
-  const communityName = Deno.env.get('COMMUNITY_NAME') || 'Local Community';
   if (!supabaseUrl || !serviceRoleKey || !redirectTo) {
     return new Response(JSON.stringify({ error: 'Bug reporting is not configured.' }), {
       status: 500,
@@ -229,24 +154,7 @@ Deno.serve(async (request) => {
       },
       serviceRoleKey
     );
-    let notificationSent = false;
-    try {
-      notificationSent = await sendBugReportNotification({
-        reportId,
-        name,
-        email,
-        description,
-        pageUrl,
-        communityName,
-        adminUrl: new URL('/admin/bug-reports', redirectTo).toString(),
-        resendApiKey,
-        notificationEmail,
-        fromEmail
-      });
-    } catch (notificationError) {
-      console.error('Bug-report email notification failed', notificationError);
-    }
-    return json({ ok: true, reportId, notificationSent }, 201, cors);
+    return json({ ok: true, reportId }, 201, cors);
   } catch (caught) {
     const safe = publicError(caught instanceof Error ? caught.message : '');
     return json({ error: safe.error }, safe.status, cors);
