@@ -8,7 +8,7 @@ export type Profile = {
   linkedin_url: string | null;
   github_url: string | null;
   x_url: string | null;
-  role: 'member' | 'admin';
+  role: 'member' | 'admin' | 'super_admin';
   is_public: boolean;
   created_at: string;
   updated_at: string;

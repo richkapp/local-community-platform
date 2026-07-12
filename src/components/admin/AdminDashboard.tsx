@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { isCurrentUserAdmin } from '@/lib/admin';
+import { getCurrentMemberRole, type MemberRole } from '@/lib/admin';
 import { toUserMessage } from '@/lib/errors';
 import InviteManager from './InviteManager';
 import EventManager from './EventManager';
@@ -20,23 +20,23 @@ const modes: Array<{ key: Exclude<AdminMode, 'overview'>; label: string; descrip
 ];
 
 export default function AdminDashboard({ mode = 'overview' }: Props) {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [role, setRole] = useState<MemberRole | null | undefined>(undefined);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    isCurrentUserAdmin()
-      .then(setIsAdmin)
-      .catch((caught) => { setError(toUserMessage('admin-access', caught)); setIsAdmin(false); });
+    getCurrentMemberRole()
+      .then(setRole)
+      .catch((caught) => { setError(toUserMessage('admin-access', caught)); setRole(null); });
   }, []);
 
-  if (isAdmin === null) return <p className="card p-6 text-braga-100" role="status">Checking organizer access…</p>;
-  if (!isAdmin) return <div className="card p-6"><h1 className="text-2xl font-semibold text-white">Organizer access required</h1><p className="mt-3 text-braga-100">This area is available only to {communityConfig.name} organizers.</p>{error && <p className="error-message mt-4" role="alert">{error}</p>}<a href="/" className="btn-secondary mt-6">Back home</a></div>;
+  if (role === undefined) return <p className="card p-6 text-braga-100" role="status">Checking organizer access…</p>;
+  if (role !== 'admin' && role !== 'super_admin') return <div className="card p-6"><h1 className="text-2xl font-semibold text-white">Organizer access required</h1><p className="mt-3 text-braga-100">This area is available only to {communityConfig.name} organizers.</p>{error && <p className="error-message mt-4" role="alert">{error}</p>}<a href="/" className="btn-secondary mt-6">Back home</a></div>;
 
   return (
     <div className="space-y-6">
       <div className="card p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-braga-300">Organizer tools</p>
-        <h1 className="mt-2 text-3xl font-black text-white">{communityConfig.name} admin</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-3"><h1 className="text-3xl font-black text-white">{communityConfig.name} admin</h1>{role === 'super_admin' && <span className="rounded-full bg-limewash px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-ink-950">Super admin</span>}</div>
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="Admin sections">
           <a className={mode === 'overview' ? 'btn-primary' : 'btn-secondary'} href="/admin">Overview</a>
           {modes.map((item) => <a key={item.key} className={mode === item.key ? 'btn-primary' : 'btn-secondary'} href={`/admin/${item.key}`}>{item.label}</a>)}
@@ -44,7 +44,7 @@ export default function AdminDashboard({ mode = 'overview' }: Props) {
       </div>
 
       {mode === 'overview' && <div className="grid gap-5 md:grid-cols-2">{modes.map((item) => <a key={item.key} href={`/admin/${item.key}`} className="card p-6 transition hover:border-limewash/60"><h2 className="text-xl font-bold text-white">{item.label}</h2><p className="mt-2 text-sm leading-6 text-braga-100">{item.description}</p><span className="mt-5 inline-flex font-semibold text-limewash">Open {item.label.toLowerCase()} →</span></a>)}</div>}
-      {mode === 'members' && <MemberManager />}
+      {mode === 'members' && <MemberManager isSuperAdmin={role === 'super_admin'} />}
       {mode === 'invites' && <InviteManager />}
       {mode === 'events' && <EventManager />}
       {mode === 'ideas' && <IdeaModerator />}

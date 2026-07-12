@@ -12,12 +12,13 @@
 
 ## RLS and API expectations
 
-- Members can update only their own profile and posts.
+- Active members can update only their own profile and posts; suspended accounts are blocked from community mutations at the database boundary.
 - Visitors can create anonymous posts and upvotes only through the origin-checked Edge Function.
 - Public post reads expose only a safe per-viewer edit capability; underlying author and anonymous visitor IDs remain private.
 - Events are public listings that send RSVP traffic to external event pages.
 - Legacy event-registration tables and functions are not part of the user-facing product and attendee counts are not public.
-- Organizers alone can manage invites, events, post lifecycle state, and the full member directory.
+- Organizers alone can manage invites, events, post lifecycle state, bug reports, and the full member directory.
+- Only super admins can assign or remove admin access, suspend or restore members, and permanently delete member accounts. The RPC boundary blocks self-management and changes to another super-admin account.
 - Visitors can read only published or explicitly public data.
 
 ## Invite abuse controls

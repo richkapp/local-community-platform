@@ -3,6 +3,7 @@ import type { Event, Idea } from './types';
 import { attachPublicAuthors } from './ideas';
 
 export type BugReportStatus = 'new' | 'in_review' | 'done';
+export type MemberRole = 'member' | 'admin' | 'super_admin';
 
 export type BugReport = {
   id: string;
@@ -40,8 +41,9 @@ export type AdminMember = {
   linkedin_url: string | null;
   github_url: string | null;
   x_url: string | null;
-  role: 'member' | 'admin';
+  role: MemberRole;
   is_public: boolean;
+  suspended_at: string | null;
   profile_created_at: string;
   profile_updated_at: string;
 };
@@ -50,6 +52,36 @@ export async function listAdminMembers() {
   const { data, error } = await supabase.rpc('admin_list_members');
   if (error) throw error;
   return (data ?? []) as AdminMember[];
+}
+
+export async function getCurrentMemberRole() {
+  const { data, error } = await supabase.rpc('current_member_role');
+  if (error) throw error;
+  return (data || null) as MemberRole | null;
+}
+
+export async function setMemberRole(id: string, role: Exclude<MemberRole, 'super_admin'>) {
+  const { data, error } = await supabase.rpc('super_admin_set_member_role', {
+    target_user_id: id,
+    target_role: role
+  });
+  if (error) throw error;
+  return data as Exclude<MemberRole, 'super_admin'>;
+}
+
+export async function setMemberSuspension(id: string, suspended: boolean) {
+  const { data, error } = await supabase.rpc('super_admin_set_member_suspension', {
+    target_user_id: id,
+    should_suspend: suspended
+  });
+  if (error) throw error;
+  return (data || null) as string | null;
+}
+
+export async function deleteMember(id: string) {
+  const { data, error } = await supabase.rpc('super_admin_delete_member', { target_user_id: id });
+  if (error) throw error;
+  if (data !== true) throw new Error('Member deletion was not confirmed.');
 }
 
 export async function createInvite(code: string, label: string, maxUses: number | null, expiresAt: string | null) {
