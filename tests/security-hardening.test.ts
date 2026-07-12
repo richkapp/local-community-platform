@@ -99,6 +99,30 @@ describe('delivery security contracts', () => {
     expect(migration).toContain('grant execute on function public.admin_list_members() to authenticated');
   });
 
+  test('super-admin member controls are isolated, self-protecting, and suspend mutations immediately', async () => {
+    const enumMigration = await read('supabase/migrations/020_super_admin_role.sql');
+    const controls = await read('supabase/migrations/021_super_admin_member_controls.sql');
+    expect(enumMigration).toContain("add value if not exists 'super_admin'");
+    expect(controls).toContain("profiles.role in ('admin', 'super_admin')");
+    expect(controls).toContain("profiles.role = 'super_admin'");
+    expect(controls).toContain('profiles.suspended_at is null');
+    expect(controls).toContain('create or replace function public.is_active_member()');
+    expect(controls).toContain('create or replace function public.is_super_admin()');
+    expect(controls).toContain('create or replace function public.super_admin_set_member_role');
+    expect(controls).toContain('create or replace function public.super_admin_set_member_suspension');
+    expect(controls).toContain('create or replace function public.super_admin_delete_member');
+    expect(controls).toContain('if not public.is_super_admin()');
+    expect(controls).toContain('target_user_id = current_user_id');
+    expect(controls).toContain("current_target_role = 'super_admin'");
+    expect(controls).toContain("target_role::text not in ('member', 'admin')");
+    expect(controls).toContain('set banned_until = case when should_suspend');
+    expect(controls).toContain('delete from auth.users where id = target_user_id');
+    expect(controls.match(/public\.is_active_member\(\)/g)?.length).toBeGreaterThanOrEqual(10);
+    expect(controls).toContain("raise exception 'account suspended'");
+    expect(controls).toContain('grant execute on function public.super_admin_delete_member(uuid) to authenticated');
+    expect(controls).not.toContain('richard@richkapp.com');
+  });
+
   test('RIP categories and tags are constrained across direct and anonymous writes', async () => {
     const migration = await read('supabase/migrations/016_rip_categories_tags.sql');
     const edge = await read('supabase/functions/anonymous-ideas/index.ts');
@@ -124,6 +148,7 @@ describe('delivery security contracts', () => {
 
   test('bug reports use a rate-limited Edge Function and admin-only data access', async () => {
     const migration = await read('supabase/migrations/019_bug_reports.sql');
+    const notifications = await read('supabase/migrations/022_bug_report_notifications.sql');
     const edge = await read('supabase/functions/bug-reports/index.ts');
     const config = await read('supabase/config.toml');
     expect(migration).toContain('create table public.bug_reports');
@@ -151,6 +176,14 @@ describe('delivery security contracts', () => {
     expect(edge).toContain("typeof parsed !== 'object' || Array.isArray(parsed)");
     expect(edge).toContain('allowedOrigins.has(parsed.origin)');
     expect(edge).toContain('not part of this community site');
+    expect(notifications).toContain('create extension if not exists pg_net');
+    expect(notifications).toContain('before insert on public.bug_reports');
+    expect(notifications).toContain("url := 'https://api.resend.com/emails'");
+    expect(notifications).toContain("'Idempotency-Key', 'bug-report/' || new.id");
+    expect(notifications).toContain("where name = 'RESEND_API_KEY'");
+    expect(notifications).toContain('exception\n  when others then');
+    expect(notifications).toContain('revoke all on function public.enqueue_bug_report_notification() from public, anon, authenticated');
+    expect(edge).not.toContain('RESEND_API_KEY');
     expect(edge).not.toContain("'Access-Control-Allow-Origin': '*'");
     expect(config).toContain('[functions.bug-reports]');
     expect(config).toContain('verify_jwt = false');

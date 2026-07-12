@@ -11,8 +11,9 @@ An open-source platform that gives local and interest-based communities a durabl
 - Public posts, anonymous posting and upvoting, categories, and tags
 - Optional public member profiles with author hover cards
 - Public events that send RSVP traffic to an external event page
-- Organizer tools for invites, events, post moderation, and an admin-only member database
-- Public bug reporting with optional contact details and organizer triage
+- Organizer tools for invites, events, post moderation, and a private member database
+- Super-admin controls for assigning admins, suspending access, and deleting members
+- Public bug reporting with optional contact details, organizer triage, and optional email notifications
 - Private-by-default profiles, Row Level Security, restricted RPCs, and Edge Functions
 - Astro, React, Tailwind, Supabase, Bun, and Vercel
 

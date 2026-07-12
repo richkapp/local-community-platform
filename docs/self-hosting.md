@@ -9,6 +9,7 @@ This guide creates an independent installation for one local community. It does 
 - A GitHub account
 - A Supabase project
 - A Vercel project
+- A Resend account with a verified sending domain if bug-report notifications are enabled
 - Supabase CLI access through `npx supabase`
 
 ## 1. Fork and configure the community
@@ -79,6 +80,18 @@ npx supabase functions deploy bug-reports --no-verify-jwt
 
 These functions intentionally accept requests without a user JWT. They enforce trusted origins, validate payloads, and perform privileged writes server-side. Keep their service-role access inside Supabase.
 
+Configure optional bug-report notifications in Supabase Vault:
+
+```sql
+select vault.create_secret('YOUR_RESEND_API_KEY', 'RESEND_API_KEY', 'Bug-report notification provider key');
+select vault.create_secret('organizer@example.com', 'BUG_REPORT_NOTIFICATION_EMAIL', 'Bug-report recipient');
+select vault.create_secret('Your Community <noreply@YOUR_VERIFIED_DOMAIN>', 'BUG_REPORT_FROM_EMAIL', 'Verified bug-report sender');
+select vault.create_secret('https://YOUR_DOMAIN/admin/bug-reports', 'BUG_REPORT_ADMIN_URL', 'Bug-report review URL');
+select vault.create_secret('Your Community', 'COMMUNITY_NAME', 'Notification subject label');
+```
+
+Migration `022_bug_report_notifications.sql` queues the Resend request through `pg_net` when the database inserts a report. Provider configuration or delivery failure never rolls back the stored report. Rotate existing values with `vault.update_secret(...)`; do not create duplicate secret names.
+
 ## 5. Configure the frontend
 
 Create `.env` from `.env.example` and set:
@@ -95,20 +108,20 @@ In `supabase/config.toml`, replace the reference deployment's production callbac
 
 In Supabase Auth URL settings, set your site URL and add the same exact `/auth/confirm` redirect URLs for production and local development. Avoid broad wildcard redirects.
 
-## 6. Create the first organizer
+## 6. Create the first super admin
 
 1. Use the configured invite flow to create your account.
 2. In the Supabase SQL editor, promote exactly that account:
 
 ```sql
 update public.profiles
-set role = 'admin'
+set role = 'super_admin'
 where id = (
   select id from auth.users where email = 'YOUR_ORGANIZER_EMAIL'
 );
 ```
 
-Normal authenticated users cannot promote themselves through the application API.
+Normal authenticated users cannot promote themselves through the application API. The super admin can assign ordinary admins, suspend or restore member access, and permanently delete members from `/admin/members`. Ordinary admins can use organizer tools but cannot manage roles or member accounts.
 
 ## 7. Deploy
 
