@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toUserMessage } from '@/lib/errors';
+import { formatCommunityDate } from '@/lib/communityDate';
 import type { Event } from '@/lib/types';
 
 type Props = { slug: string };
 
 function formatDate(start: string, end: string | null) {
-  const formatter = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'short' });
-  return end ? `${formatter.format(new Date(start))} – ${formatter.format(new Date(end))}` : formatter.format(new Date(start));
+  const format = (value: string) => formatCommunityDate(value, { dateStyle: 'full', timeStyle: 'short' });
+  return end ? `${format(start)} – ${format(end)}` : format(start);
 }
 
 export default function EventDetail({ slug }: Props) {

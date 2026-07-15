@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import IdeaFeed from '../components/ideas/IdeaFeed';
+import { communityConfig, communityPageTitle } from '../config/community';
+---
+<BaseLayout title={communityPageTitle('Posts')}>
+  <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+    <header class="max-w-3xl">
+      <h1 class="text-4xl font-black text-white">Community posts</h1>
+      <p class="mt-4 text-slate-300">Ideas, resources, and perspectives from the {communityConfig.name} community. Upvotes only.</p>
+    </header>
+    <div class="mt-8">
+      <IdeaFeed layout="sidebar" client:load />
+    </div>
+  </section>
+</BaseLayout>

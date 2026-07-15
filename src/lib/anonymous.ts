@@ -1,5 +1,6 @@
 import type { User } from '@supabase/supabase-js';
 import { supabaseAnonKey, supabaseUrl } from './supabase';
+import { readMigratedStorageValue } from './browserStorage';
 
 type AnonymousCapableUser = User & { is_anonymous?: boolean };
 import type { RipCategory, RipTag } from './types';
@@ -7,8 +8,11 @@ import type { RipCategory, RipTag } from './types';
 type AnonymousIdea = { id: string; slug: string; title: string; body: string; month_key: string; category: RipCategory; tags: RipTag[] };
 type AnonymousVote = { voted: boolean; upvote_count: number };
 
-const visitorKey = 'braga-anonymous-idea-visitor-id';
-const voteKey = 'braga-anonymous-idea-votes';
+const visitorKey = 'local-community-anonymous-visitor-id-v1';
+const voteKey = 'local-community-anonymous-post-votes-v1';
+const legacyVisitorKeys = ['braga-anonymous-idea-visitor-id'];
+const legacyVoteKeys = ['braga-anonymous-idea-votes'];
+
 
 export function isAnonymousUser(user: User | null | undefined) {
   return Boolean((user as AnonymousCapableUser | null | undefined)?.is_anonymous);
@@ -16,7 +20,7 @@ export function isAnonymousUser(user: User | null | undefined) {
 
 export function getAnonymousVisitorId() {
   if (typeof window === 'undefined') throw new Error('Anonymous ideas are available in a browser.');
-  const current = window.localStorage.getItem(visitorKey);
+  const current = readMigratedStorageValue(window.localStorage, visitorKey, legacyVisitorKeys);
   if (current && /^[0-9a-f-]{36}$/i.test(current)) return current;
   const visitorId = crypto.randomUUID();
   window.localStorage.setItem(visitorKey, visitorId);
@@ -26,7 +30,7 @@ export function getAnonymousVisitorId() {
 function readVoteIds() {
   if (typeof window === 'undefined') return new Set<string>();
   try {
-    const value = JSON.parse(window.localStorage.getItem(voteKey) || '[]');
+    const value = JSON.parse(readMigratedStorageValue(window.localStorage, voteKey, legacyVoteKeys) || '[]');
     return new Set(Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : []);
   } catch {
     return new Set<string>();

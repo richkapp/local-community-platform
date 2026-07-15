@@ -6,15 +6,17 @@ import EventManager from './EventManager';
 import IdeaModerator from './IdeaModerator';
 import MemberManager from './MemberManager';
 import BugReportManager from './BugReportManager';
+import VotingManager from './VotingManager';
 import { communityConfig } from '@/config/community';
 
-type AdminMode = 'overview' | 'members' | 'invites' | 'events' | 'ideas' | 'bug-reports';
+type AdminMode = 'overview' | 'members' | 'invites' | 'events' | 'voting' | 'ideas' | 'bug-reports';
 type Props = { mode?: AdminMode };
 
 const modes: Array<{ key: Exclude<AdminMode, 'overview'>; label: string; description: string }> = [
   { key: 'members', label: 'Members', description: 'Review every member record, including private profiles and account details.' },
   { key: 'invites', label: 'Invites', description: 'Create, copy, inspect, and revoke private access links.' },
   { key: 'events', label: 'Events', description: 'Create drafts and publish, unpublish, or cancel events.' },
+  { key: 'voting', label: 'Voting', description: 'Create, preview, publish, close, and archive community votes.' },
   { key: 'ideas', label: 'Posts', description: 'Review, complete, reopen, or hide community ideas, resources, and perspectives.' },
   { key: 'bug-reports', label: 'Bug Reports', description: 'Review incoming bug reports and mark each one new, in review, or done.' }
 ];
@@ -47,7 +49,8 @@ export default function AdminDashboard({ mode = 'overview' }: Props) {
       {mode === 'members' && <MemberManager isSuperAdmin={role === 'super_admin'} />}
       {mode === 'invites' && <InviteManager />}
       {mode === 'events' && <EventManager />}
-      {mode === 'ideas' && <IdeaModerator />}
+      {mode === 'voting' && <VotingManager />}
+      {mode === 'ideas' && <IdeaModerator isSuperAdmin={role === 'super_admin'} />}
       {mode === 'bug-reports' && <BugReportManager />}
     </div>
   );

@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { LuPencil } from 'react-icons/lu';
 import type { FormSubmitEvent } from '@/lib/dom';
-import { isCurrentUserAdmin, updateEvent } from '@/lib/admin';
+import { updateEvent } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { toUserMessage } from '@/lib/errors';
 import type { Event } from '@/lib/types';
+import { useSiteSession } from '@/components/auth/useSiteSession';
+import { communityDateKey, formatCommunityDate } from '@/lib/communityDate';
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Lisbon' }).format(new Date(value));
-}
-
-function bragaDateKey(value: Date) {
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value);
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
-  return `${get('year')}-${get('month')}-${get('day')}`;
+  return formatCommunityDate(value);
 }
 
 function toLocalInput(value: string) {
@@ -76,8 +72,8 @@ function EventCard({ event, isAdmin, onEdit }: { event: Event; isAdmin: boolean;
 }
 
 export default function EventList() {
+  const { isAdmin } = useSiteSession();
   const [events, setEvents] = useState<Event[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -85,24 +81,26 @@ export default function EventList() {
   const load = useCallback(async () => {
     setError('');
     try {
-      const [{ data, error: queryError }, admin] = await Promise.all([
-        supabase.from('events').select('*').in('status', ['published', 'completed']).order('starts_at', { ascending: true }),
-        isCurrentUserAdmin()
-      ]);
+      const { data, error: queryError } = await supabase
+        .from('events')
+        .select('*')
+        .in('status', ['published', 'completed'])
+        .order('starts_at', { ascending: true });
       if (queryError) throw queryError;
-      setEvents((data ?? []) as Event[]); setIsAdmin(admin);
+      setEvents((data ?? []) as Event[]);
     } catch (caught) { setError(toUserMessage('events-list', caught)); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { void load(); }, [load]);
 
+
   if (loading) return <p className="card p-6 text-braga-100" role="status">Loading events…</p>;
   if (error) return <p className="error-message" role="alert">{error}</p>;
 
-  const today = bragaDateKey(new Date());
-  const upcoming = events.filter((event) => bragaDateKey(new Date(event.starts_at)) >= today);
-  const past = events.filter((event) => bragaDateKey(new Date(event.starts_at)) < today).reverse();
+  const today = communityDateKey(new Date());
+  const upcoming = events.filter((event) => communityDateKey(event.starts_at) >= today);
+  const past = events.filter((event) => communityDateKey(event.starts_at) < today).reverse();
 
   return (
     <div className="space-y-12">

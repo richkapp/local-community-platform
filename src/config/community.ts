@@ -1,11 +1,23 @@
 export const communityConfig = {
   name: 'Braga AI Builders',
   city: 'Braga',
+  locale: 'en-GB',
+  timeZone: 'Europe/Lisbon',
+  timeZoneLabel: 'Braga time',
   tagline: 'A local AI community',
   description: 'A Braga community for people actively using AI—from everyday ChatGPT users to advanced builders and everyone in between.',
   whatsappUrl: 'https://chat.whatsapp.com/GwhqmjtwcPT4vVmQmqqIRW',
-  memberInviteCode: 'braga-group-988401a9f0d147dfa68b5c7a16e683d3d0569c18',
   githubUrl: 'https://github.com/richkapp/local-community-platform',
+  legal: {
+    operatorName: 'Braga AI Builders community organizers',
+    country: 'Portugal',
+    governingLaw: 'Portuguese law',
+    privacyFrameworkName: 'General Data Protection Regulation',
+    privacyFrameworkShortName: 'GDPR',
+    privacyFrameworkUrl: 'https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng',
+    dataProtectionAuthorityName: 'Comissão Nacional de Proteção de Dados (CNPD)',
+    dataProtectionAuthorityUrl: 'https://www.cnpd.pt/cidadaos/participacoes/'
+  },
   home: {
     eyebrow: 'A local AI community in Braga',
     heroTitle: 'Curious about AI? Come meet your people.',
@@ -21,5 +33,4 @@ export const communityConfig = {
   }
 } as const;
 
-export const memberInvitePath = `/join/${communityConfig.memberInviteCode}`;
 export const communityPageTitle = (page?: string) => page ? `${page} · ${communityConfig.name}` : communityConfig.name;

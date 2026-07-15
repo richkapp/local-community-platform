@@ -4,6 +4,8 @@ import EventDetail from '../../components/events/EventDetail';
 import { communityPageTitle } from '../../config/community';
 import { publicRecordExists } from '../../lib/public-server';
 
+export const prerender = false;
+
 const slug = Astro.params.slug ?? '';
 const exists = /^[a-z0-9][a-z0-9-]{2,159}$/.test(slug)
   ? await publicRecordExists('events', 'slug', slug)

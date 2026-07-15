@@ -11,7 +11,7 @@ export default function AuthRequired({
     <div className="card p-6" role="status">
       <h2 className="text-xl font-semibold text-white">{title}</h2>
       <p className="mt-2 text-sm text-braga-100">{message}</p>
-      <a className="btn-primary mt-5 inline-flex" href="/signin">Sign in or create account</a>
+      <a className="btn-primary mt-5 inline-flex" href="/signin">Existing member sign in</a>
     </div>
   );
 }

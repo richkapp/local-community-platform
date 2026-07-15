@@ -20,9 +20,12 @@ export function ripCategoryLabel(value: RipCategory) {
 }
 
 export function ripTagLabel(value: RipTag) {
-  return RIP_TAGS.find((item) => item.value === value)?.label ?? value;
+  return RIP_TAGS.find((item) => item.value === value)?.label
+    ?? value.split('-').filter(Boolean).map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`).join(' ');
 }
 
 export function normalizeRipTags(values: readonly RipTag[]) {
-  return [...new Set(values)].filter((value): value is RipTag => RIP_TAGS.some((item) => item.value === value));
+  return [...new Set(values.map((value) => value.trim()))]
+    .filter((value): value is RipTag => value.length >= 2 && value.length <= 40 && /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u.test(value))
+    .slice(0, 6);
 }

@@ -1,14 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProfileForm from '../components/profile/ProfileForm';
+import SettingsHub, { isSettingsTab, type SettingsTab } from '../components/settings/SettingsHub';
 import { communityPageTitle } from '../config/community';
+
+const requestedTab = Astro.url.searchParams.get('tab');
+const initialTab: SettingsTab = isSettingsTab(requestedTab) ? requestedTab : 'profile';
 ---
-<BaseLayout title={communityPageTitle('Settings')}>
-  <section class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-black text-white">Profile settings</h1>
-    <p class="mt-4 text-slate-300">Keep your public builder profile useful and safe.</p>
-    <div class="mt-8">
-      <ProfileForm client:load />
+<BaseLayout title={communityPageTitle('Dashboard')}>
+  <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="text-4xl font-black text-white">Dashboard</h1>
+    <p class="mt-3 text-slate-300">Manage your profile, invitations, posts, and saved reading.</p>
+    <div class="mt-7">
+      <SettingsHub initialTab={initialTab} client:load />
     </div>
   </section>
 </BaseLayout>

@@ -9,19 +9,30 @@ describe('launch frontend contracts', () => {
     const feed = await read('src/components/ideas/IdeaFeed.tsx');
     const detail = await read('src/components/ideas/IdeaDetail.tsx');
     const ideaLib = await read('src/lib/ideas.ts');
+    const feedMigration = await read('supabase/migrations/035_aggregated_post_feed.sql');
     const authorPreview = await read('src/components/ideas/PostAuthorPreview.tsx');
-    expect(feed).toContain('attachPublicAuthors');
+    const authorIdentity = await read('src/components/ideas/PostAuthorIdentity.tsx');
+    expect(feed).toContain('listPostFeed(initialView)');
     expect(detail).toContain('attachPublicAuthors');
     expect(ideaLib).toContain(".from('idea_public_authors')");
     expect(ideaLib).toContain('linkedin_url');
-    expect(feed).toContain('PostAuthorPreview');
+    expect(feedMigration).toContain("'profiles', case when author.id is null then null else jsonb_build_object(");
+    expect(feedMigration).not.toContain("'author_id'");
+    expect(feedMigration).not.toContain("'anonymous_visitor_id'");
+    expect(feed).toContain('PostAuthorIdentity');
     expect(detail).toContain('PostAuthorPreview');
     expect(authorPreview).toContain('`/members/${profile.handle}`');
     expect(authorPreview).toContain('group-hover:visible');
+    expect(authorPreview).toContain('hidden w-72');
+    expect(authorPreview).toContain('sm:block');
     expect(authorPreview).toContain('FaLinkedinIn');
     expect(authorPreview).toContain('FaGithub');
     expect(authorPreview).toContain('FaXTwitter');
     expect(authorPreview).toContain('LuGlobe');
+    expect(authorIdentity).toContain('LuGhost');
+    expect(authorIdentity).toContain('LuUserRound');
+    expect(authorIdentity).toContain('resolveAvatarUrl');
+    expect(authorIdentity).toContain('createdAt');
     expect(feed).not.toContain('profiles!ideas_author_id_fkey');
     const admin = await read('src/lib/admin.ts');
     expect(admin).toContain('attachPublicAuthors');
@@ -37,13 +48,130 @@ describe('launch frontend contracts', () => {
 
   test('mobile navigation and auth-aware controls are wired', async () => {
     const nav = await read('src/components/Nav.astro');
+    const footer = await read('src/components/Footer.astro');
+    const votingLink = await read('src/components/voting/VotingFeatureLink.tsx');
+    const siteSession = await read('src/components/auth/useSiteSession.ts');
     expect(nav).toContain('mobile-menu');
     expect(nav).toContain('AuthStatus client:load');
-    expect(nav).toContain('href="/ideas"');
+    expect(nav).toContain('href="/posts"');
     expect(nav).toContain('href="/events"');
     expect(nav).toContain('href="/members"');
     expect(nav.match(/>Posts<\/a>/g)).toHaveLength(2);
+    expect(nav.match(/<VotingFeatureLink/g)).toHaveLength(2);
     expect(nav).not.toContain('>Ideas</a>');
+    expect(footer).toContain('<VotingFeatureLink className="hover:text-limewash" client:load />');
+    expect(siteSession).toContain('getVotingFeatureAccess');
+    expect(siteSession).toContain('shouldShowVotingLink(access)');
+    expect(votingLink).toContain('useSiteSession');
+    expect(votingLink).toContain('if (!votingVisible) return null');
+    expect(votingLink).toContain('href="/voting"');
+  });
+
+  test('posts use the canonical route, sidebar controls, modal composer, and author-first cards', async () => {
+    const page = await read('src/pages/posts.astro');
+    const legacyPage = await read('src/pages/ideas.astro');
+    const detailPage = await read('src/pages/posts/[slug].astro');
+    const legacyDetailPage = await read('src/pages/ideas/[slug].astro');
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const authorIdentity = await read('src/components/ideas/PostAuthorIdentity.tsx');
+    const composer = await read('src/components/ideas/IdeaComposer.tsx');
+    const authStatus = await read('src/components/auth/AuthStatus.tsx');
+    const settings = await read('src/pages/settings.astro');
+    expect(page).toContain('IdeaFeed layout="sidebar"');
+    expect(legacyPage).toContain("Astro.redirect(`/posts${Astro.url.search}`");
+    expect(detailPage).toContain("publicRecordExists('ideas', 'slug', slug)");
+    expect(legacyDetailPage).toContain("Astro.params.slug ?? ''");
+    expect(legacyDetailPage).toContain('Astro.url.search');
+    expect(legacyDetailPage).toContain('Astro.redirect(`/posts/${encodeURIComponent');
+    expect(feed).toContain('<IdeaComposer tagCatalog={tagCatalog}');
+    expect(feed).toContain('aria-label="Post controls"');
+    expect(feed).toContain('aria-label="Filter posts"');
+    expect(feed).toContain("const refresh = () => void load(false)");
+    expect(feed).toContain("layout === 'sidebar' && (loading || error)");
+    expect(feed).toContain('PostAuthorIdentity');
+    expect(feed.indexOf('PostAuthorIdentity profile={idea.profiles}')).toBeLessThan(feed.indexOf('href={`/posts/${idea.slug}`}'));
+    expect(authorIdentity).toContain('h-8 w-8 rounded-full');
+    expect(authorIdentity).toContain('items-center gap-2 text-xs');
+    expect(feed).toContain('className="text-xl font-bold text-white hover:text-limewash"');
+    expect(feed).toContain("const tagClass = 'rounded-full border border-violet-300/25 bg-violet-500/10 px-2.5 py-1 text-xs");
+    expect(feed).not.toContain('Your posts are tied to your member profile.');
+    expect(composer).toContain('Create a new post');
+    expect(composer).toContain('aria-labelledby="post-composer-title"');
+    expect(authStatus).toContain('>Dashboard</a>');
+    expect(settings).toContain("communityPageTitle('Dashboard')");
+  });
+
+  test('post member filters rank active posters, stay avatar-only, and expand beyond six', async () => {
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const memberFilters = await read('src/components/ideas/PostMemberFilters.tsx');
+    const ranking = await read('src/lib/postMemberFilters.ts');
+    expect(feed).toContain('scopeIdeasToPostView(ideas, view)');
+    expect(feed).toContain('rankPostingMembers(viewScopedIdeas)');
+    expect(feed).toContain('ideaMatchesMember(idea, selectedMemberHandle)');
+    expect(feed).toContain('<PostMemberFilters');
+    expect(memberFilters).toContain('collapsedMemberLimit = 6');
+    expect(memberFilters).toContain('AvatarImage');
+    expect(memberFilters).toContain('role="tooltip"');
+    expect(memberFilters).toContain('group-hover:opacity-100');
+    expect(memberFilters).toContain('aria-label={`Filter posts by member:');
+    expect(memberFilters).toContain("aria-label={expanded ? 'Show fewer member filters' : 'Show all member filters'}");
+    expect(ranking).toContain('right.postCount - left.postCount');
+    expect(ranking).toContain('if (!profile?.handle) continue');
+  });
+
+  test('community voting is feature-gated publicly and organizer-controlled', async () => {
+    const page = await read('src/pages/voting.astro');
+    const board = await read('src/components/voting/VotingBoard.tsx');
+    const adminPage = await read('src/pages/admin/voting.astro');
+    const adminDashboard = await read('src/components/admin/AdminDashboard.tsx');
+    const manager = await read('src/components/admin/VotingManager.tsx');
+    const client = await read('src/lib/voting.ts');
+    expect(page).toContain('VotingBoard client:load');
+    expect(board).toContain('Live results');
+    expect(board).toContain('Vote anonymously');
+    expect(board).toContain('When unchecked, your member name appears publicly');
+    expect(board).toContain('Sign in with your member account');
+    expect(board).toContain('Update my vote');
+    expect(board).toContain('Create a new poll');
+    expect(board).toContain('operations.access()');
+    expect(board.indexOf('const rows = await operations.list()')).toBeLessThan(board.indexOf('const access = await operations.access()'));
+    expect(board).toContain('canViewCommunityVoting(access)');
+    expect(board).toContain('!featureAccess || !canViewVoting');
+    expect(board).toContain('Page not found');
+    expect(board).toContain('Voting is currently off. Organizers can still review these results.');
+    expect(board).toContain('{isAdmin && <a className="btn-primary" href="/admin/voting">Create a new poll</a>}');
+    expect(board).toContain('const refresh = useCallback(() => load(false)');
+    expect(client).toContain("rpc('get_voting_feature_access'");
+    expect(client).toContain("rpc('admin_set_voting_feature_enabled'");
+    expect(client).toContain("rpc('list_public_community_votes'");
+    expect(client).toContain("rpc('submit_community_ballot'");
+    expect(adminPage).toContain('mode="voting"');
+    expect(adminDashboard).toContain("mode === 'voting'");
+    expect(manager).toContain('role="switch"');
+    expect(manager).toContain('Voting public visibility');
+    expect(manager).toContain('setVotingFeatureEnabled');
+    expect(manager).toContain('const visibilitySequence = useRef(0)');
+    expect(manager).toContain('visibilityBusy || loading || busy || votingEnabled === null');
+    expect(manager).toContain('Preview vote');
+    expect(manager).toContain('Save draft');
+    expect(manager).toContain('Publish vote');
+    expect(manager).toContain('Close early');
+    expect(manager).toContain('options.length < 10');
+  });
+
+  test('super admins control post participation modes', async () => {
+    const dashboard = await read('src/components/admin/AdminDashboard.tsx');
+    const moderator = await read('src/components/admin/IdeaModerator.tsx');
+    const manager = await read('src/components/admin/PostParticipationManager.tsx');
+    const participation = await read('src/lib/postParticipation.ts');
+    expect(dashboard).toContain("isSuperAdmin={role === 'super_admin'}");
+    expect(moderator).toContain('isSuperAdmin && <PostParticipationManager />');
+    expect(manager).toContain('Allow anonymous posts');
+    expect(manager).toContain('Allow posts from logged-out users');
+    expect(manager).toContain('Allow anonymous comments');
+    expect(manager).toContain('Allow anonymous replies');
+    expect(manager).toContain('role="switch"');
+    expect(participation).toContain("rpc('super_admin_set_post_participation_setting'");
   });
 
   test('idea posting offers anonymous or account attribution without losing the draft', async () => {
@@ -57,29 +185,103 @@ describe('launch frontend contracts', () => {
     const profile = await read('src/components/profile/ProfileForm.tsx');
     expect(composer).not.toContain('AuthRequired');
     expect(composer).toContain('Post anonymously');
-    expect(composer).toContain('Create account and post');
+    expect(composer).toContain('checked={effectivePostAnonymously}');
+    expect(composer).toContain('anonymousChoice?.accountUserId === accountUserId');
+    expect(composer).not.toContain('previousSignedIn');
+    expect(composer).toContain('disabled={!signedIn || !anonymousPostsAllowed || settingsLoading}');
+    expect(composer).toContain('create an account');
     expect(composer).toContain('Post with my profile');
-    expect(composer).toContain('Add a post');
+    expect(composer).toContain('Create a new post');
+    expect(composer).toContain('showModal()');
+    expect(composer).toContain('<dialog');
     expect(composer).toContain('Share an idea, resource, or perspective with the community.');
     expect(composer).not.toContain('Add a RIP');
     expect(composer).toContain('RipTaxonomyPicker');
-    expect(draft).toContain('braga-idea-draft-v1');
-    expect(draft).toContain("context: 'ideas'");
-    expect(callback).toContain("'/ideas?restoreIdea=1'");
+    expect(draft).toContain('local-community-post-draft-v1');
+    expect(draft).toContain("legacyDraftKeys = ['braga-idea-draft-v1']");
+    expect(draft).toContain("context: 'signin'");
+    expect(draft).toContain("next: '/ideas'");
+    expect(callback).toContain("'/posts?restoreIdea=1'");
+    expect(composer).toContain("if (!draft)");
+    expect(composer).toContain('No saved post was found on this browser');
+    expect(composer.indexOf("if (!draft)")).toBeLessThan(composer.indexOf("setMessage('Your post is restored"));
     expect(votes).not.toContain('No account needed');
-    expect(feed).toContain('Sign in or create an account with a magic link');
+    expect(feed).toContain('Already a member? Sign in with a magic link');
     expect(feed).toContain('Next event:');
     expect(feed).toContain('RIP_CATEGORIES');
-    expect(feed).toContain('RIP_TAGS');
+    expect(feed).toContain('usePostTagCatalog');
     expect(feed).toContain('categoryFilter');
-    expect(feed).toContain('tagFilter');
+    expect(feed).toContain('selectedTags');
     expect(feed).toContain('updateOwnIdea');
     expect(feed).toContain('Mark done');
     expect(feed).toContain('deleteIdea');
     expect(ideas).toContain('createAnonymousIdea');
+    expect(ideas).toContain("rpc('post_member_anonymous_idea'");
     expect(ideas).toContain('supabase.auth.getSession()');
     expect(events).toContain('isAnonymousUser');
     expect(profile).toContain('isAnonymousUser');
+  });
+
+  test('comments load only on post detail, support nested replies, and expose counts in the feed', async () => {
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const detail = await read('src/components/ideas/IdeaDetail.tsx');
+    const comments = await read('src/components/ideas/PostComments.tsx');
+    const controls = await read('src/components/ideas/PostCommentControls.tsx');
+    const commentLib = await read('src/lib/postComments.ts');
+    expect(detail).toContain('<PostComments ideaId={idea.id} />');
+    expect(feed).not.toContain('listIdeaComments(');
+    expect(feed).toContain('listPostFeed(initialView)');
+    expect(feed).toContain('href={`/posts/${idea.slug}#comments`}');
+    expect(detail).toContain("window.location.hash !== '#comments'");
+    expect(detail).toContain("document.getElementById('comments')?.scrollIntoView");
+    expect(detail).toContain('}, [idea?.id]);');
+    expect(feed).toContain('idea.comment_count ?? 0');
+    expect(comments).toContain('buildPostCommentTree(comments)');
+    expect(controls).toContain('comment.replies.map((reply) => <CommentCard');
+    expect(controls).toContain('onCreateReply(comment.id, body, postAnonymously)');
+    expect(controls).toContain('Post anon?');
+    expect(controls).toContain("depth <= 3 ? 'pl-2 sm:ml-5 sm:pl-4'");
+    expect(comments).toContain('Leave a Comment');
+    expect(comments).toContain('composerTriggerRef.current?.focus()');
+    expect(comments).toContain('ref={composerTriggerRef}');
+    expect(comments).not.toContain('Sort by');
+    expect(controls).not.toContain('Award');
+    expect(controls).not.toContain('Share');
+    expect(comments).toContain("access === 'active'");
+    expect(comments).toContain('sign in required');
+    expect(comments).toContain('toggleIdeaCommentUpvote');
+    expect(commentLib).toContain("rpc('list_idea_comments'");
+    expect(commentLib).toContain("rpc('create_idea_comment'");
+    expect(commentLib).toContain("rpc('toggle_idea_comment_upvote'");
+  });
+
+  test('post tags are popularity-ranked, expandable, multi-filterable, and member-creatable', async () => {
+    const picker = await read('src/components/ideas/RipTaxonomyPicker.tsx');
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const catalog = await read('src/components/ideas/usePostTagCatalog.ts');
+    const ideas = await read('src/lib/ideas.ts');
+    expect(picker).toContain('collapsedTagLimit = 6');
+    expect(picker).toContain('ADD A TAG {createdCount}/{tagLimit}');
+    expect(picker).toContain('catalog.slice(0, collapsedTagLimit)');
+    expect(picker).toContain('LuChevronDown');
+    expect(picker).toContain('LuInfo');
+    expect(picker).toContain('createPostTag');
+    expect(picker).toContain('tags.length >= 6');
+    expect(picker).toContain('const canCreateForPost = canCreate && tags.length < 6');
+    expect(picker).toContain('disabled={creating}');
+    expect(picker).toContain('Members can create up to 3 tags');
+    expect(feed).toContain('collapsedTagLimit = 6');
+    expect(feed).toContain('selectedTags.every');
+    expect(feed).toContain('aria-label={`Filter posts by category: ${categoryLabel}`}');
+    expect(feed).toContain('aria-label={`Filter posts by tag: ${label}`}');
+    expect(feed).toContain('aria-pressed={selectedTags.includes(tag)}');
+    expect(feed).toContain('LuChevronDown');
+    expect(feed).toContain('usage_count');
+    expect(catalog).toContain('listPostTags');
+    expect(catalog).toContain('community:tags-changed');
+    expect(catalog).toContain('existing.length > 0 ? existing : fallbackTags');
+    expect(ideas).toContain("rpc('list_post_tags'");
+    expect(ideas).toContain("rpc('create_post_tag'");
   });
 
   test('public events use external RSVP pages without exposing attendee counts', async () => {
@@ -98,10 +300,25 @@ describe('launch frontend contracts', () => {
     expect(preview).toContain("record['@type'] === 'Event'");
   });
 
-  test('favicon and branded not-found page exist', async () => {
+  test('the header identity and generic favicon stay configurable', async () => {
     await access(new URL('public/favicon.svg', root));
     await access(new URL('src/pages/404.astro', root));
-    expect(await read('src/layouts/BaseLayout.astro')).toContain('rel="icon"');
+    const layout = await read('src/layouts/BaseLayout.astro');
+    const nav = await read('src/components/Nav.astro');
+    const config = await read('src/config/community.ts');
+    const inviteManager = await read('src/components/admin/InviteManager.tsx');
+    const dateHelper = await read('src/lib/communityDate.ts');
+    expect(layout).toContain('<link rel="icon" href="/favicon.svg"');
+    expect(nav).toContain('communityConfig.name.split');
+    expect(nav).toContain('bg-limewash font-extrabold');
+    expect(nav).not.toContain('/images/braga-brain-network.webp');
+    expect(config).toContain("locale: 'en-GB'");
+    expect(config).toContain("timeZone: 'Europe/Lisbon'");
+    expect(config).toContain("timeZoneLabel: 'Braga time'");
+    expect(inviteManager).toContain('`invite-${crypto.randomUUID()');
+    expect(inviteManager).not.toContain('`braga-${crypto.randomUUID()');
+    expect(dateHelper).toContain('communityConfig.locale');
+    expect(dateHelper).toContain('communityConfig.timeZone');
   });
 
   test('landing and members routes expose only the requested community CTAs', async () => {
@@ -128,8 +345,10 @@ describe('launch frontend contracts', () => {
     expect(home).not.toContain('How to join');
     expect(authStatus).not.toContain('Use private invite');
     expect(authStatus).toContain('Sign In');
-    expect(members).toContain('Become a Member');
-    expect(members).toContain('memberInvitePath');
+    expect(members).toContain('Join WhatsApp Community');
+    expect(members).toContain('communityConfig.whatsappUrl');
+    expect(config).not.toContain('memberInviteCode');
+    expect(config).not.toContain('memberInvitePath');
     expect(footer).toContain('This site is powered by');
     expect(footer).toContain('Local Community Platform');
     expect(footer).toContain('an open-source platform for local communities.');
@@ -137,7 +356,7 @@ describe('launch frontend contracts', () => {
     expect(footer).toContain('https://buymeacoffee.com/richkapp');
     expect(footer).toContain('☕️ buy the creator a coffee');
     expect(footer).toContain('opacity-50');
-    expect(footer).toContain('BugReportDialog client:load');
+    expect(footer).toContain('BugReportLauncher client:visible');
     expect(footer).not.toContain('Source code');
     await expect(access(new URL('src/pages/join.astro', root))).rejects.toThrow();
   });
@@ -159,21 +378,115 @@ describe('launch frontend contracts', () => {
     expect(client).toContain('getBugReportVisitorId');
   });
 
-  test('sign in and account creation use one clearly explained magic-link flow', async () => {
+  test('existing-member sign in stays separate from invited account creation', async () => {
     const page = await read('src/pages/signin.astro');
     const form = await read('src/components/auth/InviteEmailForm.tsx');
+    const magicLink = await read('src/lib/magicLink.ts');
     const composer = await read('src/components/ideas/IdeaComposer.tsx');
-    expect(page).toContain('Sign in or create your account');
-    expect(page).toContain('If you already have an account, it signs you in');
-    expect(form).toContain('No password and no separate signup');
+    const edge = await read('supabase/functions/request-invite-magic-link/index.ts');
+    expect(page).toContain('Existing member sign in');
+    expect(page).toContain('mode="signin"');
+    expect(page).not.toContain('memberInviteCode');
+    expect(form).toContain("{ mode: 'invite'; code: string } | { mode: 'signin'; code?: never }");
+    expect(form).toContain('requestMagicLink');
+    expect(magicLink).toContain('/functions/v1/request-invite-magic-link');
     expect(form).toContain('Email me a magic link');
-    expect(form).toContain('I agree to receive a one-time login or signup link sent through Supabase.');
+    expect(form).toContain('I agree to receive a one-time magic-link email sent through Supabase.');
     expect(form).toContain('My email address will never be used for marketing.');
     expect(form).toContain('emailConsent: true');
     expect(form).toContain('required');
-    expect(composer).toContain('I agree to receive a one-time login or signup link sent through Supabase.');
+    expect(composer).toContain('Already a member? Sign in');
+    expect(composer).toContain('create an account</a> with a member invitation');
+    expect(composer).toContain('href={communityConfig.whatsappUrl}');
+    expect(composer).not.toContain('Create account and post');
+    expect(composer).toContain('I agree to receive a one-time magic-link email sent through Supabase.');
     expect(composer).toContain('My email address will never be used for marketing.');
     expect(composer).toContain('emailBusy || !emailConsent');
+    expect(composer).toContain("onClick={() => setStage('form')} disabled={emailBusy}");
+    expect(edge).toContain("payload.context === 'signin'");
+    expect(edge).toContain('create_user: false');
+    expect(edge).toContain('If that email belongs to a member, a sign-in link is on its way.');
+    expect(edge).not.toContain('IDEA_SIGNUP_INVITE_CODE');
+  });
+
+  test('member settings expose five rolling shareable invitation URLs', async () => {
+    const settings = await read('src/pages/settings.astro');
+    const hub = await read('src/components/settings/SettingsHub.tsx');
+    const component = await read('src/components/invites/MemberInvitePool.tsx');
+    const invites = await read('src/lib/invites.ts');
+    const callback = await read('src/components/auth/AuthCallback.tsx');
+    expect(settings).toContain('SettingsHub');
+    expect(settings).toContain('<SettingsHub initialTab={initialTab} client:load />');
+    expect(hub).toContain('MemberInvitePool');
+    expect(component).toContain('Invite friends');
+    expect(component).toContain('navigator.share');
+    expect(component).toContain('communityConfig.name');
+    expect(component).not.toContain("title: 'Join Braga AI Builders'");
+    expect(component).toContain('Copy link');
+    expect(component).toContain('Available');
+    expect(component).toContain('Claim in progress');
+    expect(component).toContain('Recently joined');
+    expect(component).toContain('requestSequence.current');
+    expect(component).toContain("document.visibilityState === 'visible'");
+    expect(invites).toContain("rpc('get_my_member_invites'");
+    expect(callback).toContain("rpc('claim_my_pending_invite'");
+    expect(callback).toContain("inviteFlow !== 'rolling_v1'");
+    expect(callback).toContain('if (!recentlyCreated) return');
+    expect(callback).toContain("console.error('[invite-claim-backup]'");
+  });
+
+  test('member settings explain invitation claim reservations precisely', async () => {
+    const component = await read('src/components/invites/MemberInvitePool.tsx');
+    const admin = await read('src/components/admin/InviteManager.tsx');
+    expect(component).toContain('Claim in progress');
+    expect(component).toContain('reserved for up to 24 hours');
+    expect(component).toContain('after they request their authentication email');
+    expect(component).not.toContain("pending ? 'Pending'");
+    expect(admin).toContain("invite.status === 'pending' ? 'Claim in progress'");
+  });
+
+  test('settings and posts expose member post history and private bookmark libraries', async () => {
+    const settings = await read('src/pages/settings.astro');
+    const hub = await read('src/components/settings/SettingsHub.tsx');
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const detail = await read('src/components/ideas/IdeaDetail.tsx');
+    const bookmark = await read('src/components/ideas/BookmarkButton.tsx');
+    const ideas = await read('src/lib/ideas.ts');
+    const feedMigration = await read('supabase/migrations/035_aggregated_post_feed.sql');
+
+    expect(settings).toContain('SettingsHub');
+    expect(settings).toContain('<SettingsHub initialTab={initialTab} client:load />');
+    expect(settings).toContain("Astro.url.searchParams.get('tab')");
+    expect(hub).toContain("'Profile'");
+    expect(hub).toContain("'Invites'");
+    expect(hub).toContain("'My posts'");
+    expect(hub).toContain("'My bookmarks'");
+    expect(hub).toContain("searchParams.get('tab')");
+    expect(hub).toContain('useState<SettingsTab>(initialTab)');
+    expect(hub).toContain("aria-current={activeTab === key ? 'page' : undefined}");
+    expect(hub).toContain("navigate(url.href, { history: 'push' })");
+    expect(hub).toContain('sync();');
+    expect(hub).toContain('IdeaFeed');
+    expect(feed).toContain('useState<PostFeedView>(initialView)');
+    expect(feed).toContain('My posts');
+    expect(feed).toContain('My bookmarks');
+    expect(feedMigration).toContain("'viewer_is_author'");
+    expect(feedMigration).toContain("'viewer_has_bookmarked'");
+    expect(feedMigration).toContain("'viewer_bookmarked_at'");
+    expect(feed).toContain('BookmarkButton');
+    expect(feed).toContain('updateOwnIdea');
+    expect(feed).toContain('Member access unavailable');
+    expect(feed).toContain("setCategoryFilter('all')");
+    expect(feed).toContain('listPostFeed(initialView)');
+    expect(detail).toContain('BookmarkButton');
+    expect(detail).toContain('Bookmarking is unavailable because this account’s community membership is not active.');
+    expect(bookmark).toContain('setIdeaBookmark');
+    expect(bookmark).toContain('Sign in to bookmark');
+    expect(bookmark).toContain('role="alert"');
+    expect(bookmark).not.toContain('className="sr-only" role="alert"');
+    expect(ideas).toContain("rpc('get_my_post_relationships'");
+    expect(ideas).toContain('target_idea_id: ideaId');
+    expect(ideas).toContain("rpc('set_idea_bookmark'");
   });
 
   test('profile directory visibility is a prominent first setting', async () => {
@@ -181,6 +494,29 @@ describe('launch frontend contracts', () => {
     expect(form).toContain('bg-violet-500/15');
     expect(form).toContain('LuEye');
     expect(form.indexOf('Show my profile in the member directory')).toBeLessThan(form.indexOf('Display name'));
+  });
+
+  test('profile photos use the native upload flow instead of editable external URLs', async () => {
+    const form = await read('src/components/profile/ProfileForm.tsx');
+    const uploader = await read('src/components/profile/AvatarUploader.tsx');
+    const avatar = await read('src/lib/avatar.ts');
+    expect(form).toContain('AvatarUploader');
+    expect(form).not.toContain('Avatar image URL');
+    expect(form).not.toContain('id="avatar_url"');
+    expect(uploader).toContain('Maximum 2 MB');
+    expect(uploader).toContain('Replace photo');
+    expect(uploader).toContain('Remove');
+    expect(uploader).toContain('accept="image/jpeg,image/png,image/webp"');
+    expect(avatar).toContain('AVATAR_OUTPUT_SIZE = 384');
+    expect(avatar).toContain("contentType: 'image/webp'");
+    expect(avatar).toContain("cacheControl: '3600'");
+  });
+
+  test('member deletion cleans up a native avatar before removing the account', async () => {
+    const admin = await read('src/lib/admin.ts');
+    const manager = await read('src/components/admin/MemberManager.tsx');
+    expect(admin).toContain("supabase.storage.from('avatars').remove([avatarPath])");
+    expect(manager).toContain('deleteMember(member.id, member.avatar_path)');
   });
 
   test('organizer routes cover the complete v1 operations', async () => {
@@ -197,6 +533,7 @@ describe('launch frontend contracts', () => {
     const admin = await read('src/components/admin/AdminDashboard.tsx');
     const manager = await read('src/components/admin/BugReportManager.tsx');
     const members = await read('src/components/admin/MemberManager.tsx');
+    const invites = await read('src/components/admin/InviteManager.tsx');
     const adminLib = await read('src/lib/admin.ts');
     expect(admin).not.toContain('registrations');
     expect(admin).toContain("key: 'bug-reports'");
@@ -214,5 +551,50 @@ describe('launch frontend contracts', () => {
     expect(adminLib).toContain("rpc('super_admin_set_member_role'");
     expect(adminLib).toContain("rpc('super_admin_set_member_suspension'");
     expect(adminLib).toContain("rpc('super_admin_delete_member'");
+    expect(invites).toContain('max="50"');
+    expect(invites).toContain('min="1"');
+    expect(invites).toContain('1–50 uses');
+    expect(invites).toContain('Member invite links');
+    expect(invites).toContain('Replace link');
+    expect(adminLib).toContain("rpc('create_admin_invite'");
+    expect(adminLib).toContain("rpc('revoke_admin_invite'");
+    expect(adminLib).toContain("rpc('list_member_invites_for_admin'");
+  });
+
+  test('posts expose native sharing and the global footer carries legal and support links', async () => {
+    const feed = await read('src/components/ideas/IdeaFeed.tsx');
+    const detail = await read('src/components/ideas/IdeaDetail.tsx');
+    const share = await read('src/components/ideas/SharePostButton.tsx');
+    const sharing = await read('src/lib/postSharing.ts');
+    const footer = await read('src/components/Footer.astro');
+    const authForm = await read('src/components/auth/InviteEmailForm.tsx');
+    const bugReport = await read('src/components/bug-reports/BugReportDialog.tsx');
+    const terms = await read('src/pages/terms.astro');
+    const privacy = await read('src/pages/privacy.astro');
+
+    expect(feed).not.toContain('Narrow the feed without losing your place.');
+    expect(feed).toContain('<SharePostButton slug={idea.slug} title={idea.title} />');
+    expect(detail).toContain('<SharePostButton slug={idea.slug} title={idea.title} />');
+    expect(share).toContain("import { LuForward } from 'react-icons/lu'");
+    expect(share).toContain("import { sharePost } from '@/lib/postSharing'");
+    expect(share).toContain('aria-label={`Share ${title}`}');
+    expect(sharing).toContain('if (client.share)');
+    expect(sharing).toContain('client.clipboard.writeText');
+    expect(sharing).toContain("caught.name === 'AbortError'");
+    expect(footer).toContain('id="site-support"');
+    expect(footer).toContain('href="/terms"');
+    expect(footer).toContain('href="/privacy"');
+    expect(footer.indexOf('aria-label="Footer navigation"')).toBeLessThan(footer.indexOf('aria-label="Legal and support"'));
+    expect(footer.indexOf('href="/privacy"')).toBeLessThan(footer.indexOf('<BugReportLauncher'));
+    expect(authForm).toContain('href="/terms"');
+    expect(authForm).toContain('href="/privacy"');
+    expect(bugReport).toContain('href="/privacy"');
+    expect(terms).toContain('Terms and Conditions');
+    expect(terms).toContain('href="/privacy"');
+    expect(terms).toContain('communityConfig.name');
+    expect(privacy).toContain('communityConfig.legal');
+    expect(privacy).toContain('Operators of forks must review and replace');
+    expect(terms).not.toContain('Braga AI Builders');
+    expect(privacy).not.toContain('Braga AI Builders');
   });
 });

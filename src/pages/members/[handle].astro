@@ -4,6 +4,8 @@ import MemberProfile from '../../components/profile/MemberProfile';
 import { communityPageTitle } from '../../config/community';
 import { publicRecordExists } from '../../lib/public-server';
 
+export const prerender = false;
+
 const handle = Astro.params.handle ?? '';
 const exists = /^[a-z0-9][a-z0-9-]{2,39}$/.test(handle)
   ? await publicRecordExists('public_profiles', 'handle', handle)

@@ -4,6 +4,7 @@ export type Profile = {
   display_name: string;
   bio: string;
   avatar_url: string | null;
+  avatar_path: string | null;
   website_url: string | null;
   linkedin_url: string | null;
   github_url: string | null;
@@ -16,16 +17,29 @@ export type Profile = {
 
 export type PublicProfile = Pick<
   Profile,
-  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url'
->;
+  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'avatar_path' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url'
+> & { avatar_updated_at: string | null };
 
 export type EditableProfile = Pick<
   Profile,
-  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url' | 'is_public'
+  'handle' | 'display_name' | 'bio' | 'avatar_url' | 'avatar_path' | 'website_url' | 'linkedin_url' | 'github_url' | 'x_url' | 'is_public'
 >;
 
+export type EditableProfileRecord = EditableProfile & Pick<Profile, 'id' | 'updated_at'>;
+
 export type RipCategory = 'idea' | 'resource' | 'perspective';
-export type RipTag = 'next-event' | 'news' | 'community-challenge' | 'collaboration' | 'learning' | 'member-project';
+export type RipTag = string;
+
+export type PostTagCatalogItem = {
+  slug: RipTag;
+  label: string;
+  usage_count: number;
+  is_system: boolean;
+  viewer_created: boolean;
+  viewer_custom_tag_count: number;
+  viewer_custom_tag_limit: number;
+  viewer_is_active: boolean;
+};
 
 export type Idea = {
   id: string;
@@ -39,9 +53,24 @@ export type Idea = {
   created_at: string;
   updated_at: string;
   viewer_can_edit?: boolean;
+  viewer_is_author?: boolean;
+  viewer_has_bookmarked?: boolean;
+  viewer_bookmarked_at?: string | null;
   profiles?: PublicProfile | null;
   upvote_count?: number;
   viewer_has_voted?: boolean;
+  comment_count?: number;
+};
+
+export type PostComment = {
+  id: string;
+  parent_id: string | null;
+  body: string;
+  created_at: string;
+  is_anonymous: boolean;
+  profiles: PublicProfile | null;
+  upvote_count: number;
+  viewer_has_upvoted: boolean;
 };
 
 export type Event = {
@@ -73,4 +102,46 @@ export type Registration = {
   note: string;
   created_at: string;
   updated_at: string;
+};
+
+export type VotingFeatureAccess = {
+  is_enabled: boolean;
+  viewer_is_admin: boolean;
+};
+
+export type CommunityVoteStatus = 'draft' | 'published' | 'closed';
+
+export type CommunityVoteNamedVoter = {
+  display_name: string;
+};
+
+export type CommunityVoteOption = {
+  id: string;
+  label: string;
+  position: number;
+  ballot_count: number;
+  named_voters?: CommunityVoteNamedVoter[];
+};
+
+export type CommunityVote = {
+  id: string;
+  title: string;
+  description: string;
+  status: Exclude<CommunityVoteStatus, 'draft'>;
+  closes_at: string;
+  published_at: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  ballot_count: number;
+  options: CommunityVoteOption[];
+  viewer_option_id: string | null;
+  viewer_is_anonymous: boolean | null;
+  viewer_can_vote: boolean;
+};
+
+export type AdminCommunityVote = Omit<CommunityVote, 'status' | 'viewer_option_id' | 'viewer_is_anonymous' | 'viewer_can_vote'> & {
+  status: CommunityVoteStatus;
+  can_edit: boolean;
+  can_delete: boolean;
 };

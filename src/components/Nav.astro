@@ -1,8 +1,9 @@
 ---
 import AuthStatus from './auth/AuthStatus';
+import VotingFeatureLink from './voting/VotingFeatureLink';
 import { communityConfig } from '../config/community';
 ---
-<header class="sticky top-0 z-50 border-b border-white/10 bg-ink-950/95 backdrop-blur">
+<header id="site-header" transition:persist="site-header" class="sticky top-0 z-50 border-b border-white/10 bg-ink-950/95 backdrop-blur">
   <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8" aria-label="Primary navigation">
     <a href="/" class="flex min-w-0 items-center gap-3 font-semibold text-white">
       <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-limewash font-extrabold text-ink-950">{communityConfig.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase()}</span>
@@ -10,8 +11,9 @@ import { communityConfig } from '../config/community';
     </a>
 
     <div class="hidden items-center gap-5 md:flex">
-      <a class="nav-link" href="/ideas">Posts</a>
+      <a class="nav-link" href="/posts">Posts</a>
       <a class="nav-link" href="/events">Events</a>
+      <VotingFeatureLink className="nav-link" client:load />
       <a class="nav-link" href="/members">Members</a>
       <AuthStatus client:load />
     </div>
@@ -19,11 +21,19 @@ import { communityConfig } from '../config/community';
     <details class="mobile-menu relative md:hidden">
       <summary class="cursor-pointer list-none rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white">Menu</summary>
       <div class="absolute right-0 mt-3 w-64 space-y-2 rounded-3xl border border-white/10 bg-ink-950 p-4 shadow-2xl">
-        <a class="mobile-nav-link" href="/ideas">Posts</a>
+        <a class="mobile-nav-link" href="/posts">Posts</a>
         <a class="mobile-nav-link" href="/events">Events</a>
+        <VotingFeatureLink className="mobile-nav-link" client:load />
         <a class="mobile-nav-link" href="/members">Members</a>
         <AuthStatus client:load />
       </div>
     </details>
   </nav>
 </header>
+
+<script>
+  document.addEventListener('astro:before-preparation', () => {
+    const menu = document.querySelector<HTMLDetailsElement>('#site-header details.mobile-menu');
+    if (menu) menu.removeAttribute('open');
+  });
+</script>

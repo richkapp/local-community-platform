@@ -1,0 +1,104 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalPage from '../components/legal/LegalPage.astro';
+import { communityConfig, communityPageTitle } from '../config/community';
+
+const legal = communityConfig.legal;
+---
+<BaseLayout
+  title={communityPageTitle('Terms and Conditions')}
+  description={`Terms governing use of the ${communityConfig.name} community website.`}
+>
+  <LegalPage
+    eyebrow="Legal"
+    title="Terms and Conditions"
+    summary={`These terms set the ground rules for using the ${communityConfig.name} website and participating in its community features.`}
+    lastUpdated="15 July 2026"
+  >
+    <section>
+      <h2>1. About these terms</h2>
+      <p>These Terms and Conditions apply to the {communityConfig.name} community website, including posts, comments, votes, member profiles, invitations, bookmarks, event information, community ballots, and support features. By using the site, you agree to follow these terms. If you do not agree, do not use the site.</p>
+      <p>The service is operated by {legal.operatorName} in {communityConfig.city}, {legal.country}. It is not an employment service, professional association, emergency service, or provider of professional advice.</p>
+    </section>
+
+    <section>
+      <h2>2. Eligibility and accounts</h2>
+      <p>You must have the legal capacity to accept these terms. If you are a minor, use the site only with the involvement and permission of a parent or guardian where required by law.</p>
+      <ul>
+        <li>Public content may be browsed without an account, and some participation may be available anonymously.</li>
+        <li>Member accounts are invitation-based and use passwordless sign-in links. Keep access to your email account secure and do not share a sign-in link.</li>
+        <li>Provide accurate account information and keep your profile current.</li>
+        <li>Do not create accounts or use invitations to evade a suspension, rate limit, moderation action, or access restriction.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Community standards</h2>
+      <p>Use the site to contribute constructively. You must not:</p>
+      <ul>
+        <li>post unlawful, fraudulent, threatening, hateful, harassing, or deliberately harmful content;</li>
+        <li>share another person’s private information without a lawful reason and appropriate permission;</li>
+        <li>infringe copyright, trade marks, confidentiality obligations, or other rights;</li>
+        <li>impersonate another person or misrepresent your affiliation;</li>
+        <li>send spam, manipulate votes, automate abusive activity, or interfere with the service;</li>
+        <li>upload secrets, credentials, malicious code, or instructions intended to compromise people, systems, or data; or</li>
+        <li>use anonymous participation to evade accountability for prohibited conduct.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Your content</h2>
+      <p>You keep ownership of content you submit and confirm that you have the rights and permissions needed to publish it.</p>
+      <p>You grant {communityConfig.name} a non-exclusive, worldwide, royalty-free licence to host, reproduce, display, format, and distribute that content only as needed to operate, secure, moderate, and present the community service. This licence ends when content is deleted, except for limited backup copies, content already shared outside the service, or retention required for legal, safety, or discussion-integrity reasons.</p>
+      <p>Public content can be copied or shared by other people. Do not submit confidential information, trade secrets, personal data you are not entitled to publish, or material that would cause harm if it became public.</p>
+    </section>
+
+    <section>
+      <h2>5. Community information</h2>
+      <p>Member contributions—including material created or assisted by automated tools—can be inaccurate, incomplete, biased, or unsafe. Contributors are responsible for reviewing what they submit, and readers are responsible for decisions they make based on community content.</p>
+      <p>Nothing on the site is a substitute for qualified legal, medical, financial, security, or other professional advice. Verify important information independently.</p>
+    </section>
+
+    <section>
+      <h2>6. Moderation and enforcement</h2>
+      <p>Organizers may review, hide, change the status of, or remove content; restrict features; suspend accounts; revoke invitations; or block activity where reasonably necessary to enforce these terms, protect people or systems, comply with law, or preserve community quality.</p>
+      <p>Serious or repeated abuse may result in immediate restriction. Anonymous participation is not a promise that technical anti-abuse records will be ignored.</p>
+    </section>
+
+    <section>
+      <h2>7. Events and external services</h2>
+      <p>The site may link to chat, event registration, GitHub, donation, social-network, or other third-party services. Those services have separate terms and privacy practices. {communityConfig.name} does not control their availability, content, security, payments, or data handling.</p>
+      <p>Event details may change. Check the linked registration or organizer information before travelling or relying on capacity, schedule, or venue details.</p>
+    </section>
+
+    <section>
+      <h2>8. Privacy</h2>
+      <p>The <a href="/privacy">Privacy Policy</a> explains how personal data is processed, including public and anonymous participation, browser storage, service providers, retention, and data-protection rights.</p>
+    </section>
+
+    <section>
+      <h2>9. Availability and open-source software</h2>
+      <p>Features may change, pause, or be discontinued. The organizers do not promise uninterrupted availability, permanent storage of content, or compatibility with every device.</p>
+      <p>The website is powered by open-source software, but operating this hosted community service and publishing source code are separate activities. Open-source licences govern use of the code; these terms govern use of this hosted service.</p>
+    </section>
+
+    <section>
+      <h2>10. Disclaimers and liability</h2>
+      <p>The service and community content are provided on an “as available” basis. To the fullest extent permitted by law, the organizers do not guarantee the accuracy, completeness, fitness, or reliability of user content, event information, or external links.</p>
+      <p>Nothing in these terms excludes liability where doing so would be unlawful. Subject to those limits, the organizers are not responsible for indirect or consequential loss arising from reliance on community content, third-party services, or temporary unavailability.</p>
+    </section>
+
+    <section>
+      <h2>11. Ending use and deleting an account</h2>
+      <p>You may stop using the site at any time. Members can use available account controls or contact organizers for help with access, correction, or deletion.</p>
+      <p>Deleting an account may not remove every contribution immediately. Some content may remain de-identified as coming from a “Former member” to preserve discussions, and limited records may be retained for security, legal obligations, legal claims, or other people’s rights.</p>
+    </section>
+
+    <section>
+      <h2>12. Changes, governing law, and contact</h2>
+      <p>These terms may be updated when the service or legal requirements change. The current version and update date will remain available on this page.</p>
+      <p>These terms are governed by {legal.governingLaw}, without removing mandatory rights that apply to you. Use <a href="#site-support">Report a Bug</a> in the footer for questions about these terms, account issues, or reports about content.</p>
+      <p class="legal-note">Operators of forks must review and replace the legal configuration and terms for their own organization, providers, users, and jurisdiction before launch.</p>
+    </section>
+  </LegalPage>
+</BaseLayout>

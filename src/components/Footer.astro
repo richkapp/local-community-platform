@@ -1,8 +1,9 @@
 ---
 import { communityConfig } from '../config/community';
-import BugReportDialog from './bug-reports/BugReportDialog';
+import BugReportLauncher from './bug-reports/BugReportLauncher';
+import VotingFeatureLink from './voting/VotingFeatureLink';
 ---
-<footer class="border-t border-white/10 py-10">
+<footer transition:persist="site-footer" class="border-t border-white/10 py-10">
   <div class="mx-auto flex max-w-6xl flex-col gap-5 px-4 text-sm text-braga-200 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
     <div class="space-y-2">
       <p>
@@ -13,11 +14,18 @@ import BugReportDialog from './bug-reports/BugReportDialog';
       </p>
       <a href="https://buymeacoffee.com/richkapp" target="_blank" rel="noreferrer noopener" class="inline-flex opacity-50 transition-opacity hover:opacity-100">☕️ buy the creator a coffee</a>
     </div>
-    <nav class="flex flex-wrap gap-5" aria-label="Footer navigation">
-      <a href="/ideas" class="hover:text-limewash">Posts</a>
-      <a href="/events" class="hover:text-limewash">Events</a>
-      <a href="/members" class="hover:text-limewash">Members</a>
-      <BugReportDialog client:load />
-    </nav>
+    <div class="flex flex-col gap-3 md:items-end">
+      <nav class="flex flex-wrap gap-x-5 gap-y-2" aria-label="Footer navigation">
+        <a href="/posts" class="hover:text-limewash">Posts</a>
+        <a href="/events" class="hover:text-limewash">Events</a>
+        <VotingFeatureLink className="hover:text-limewash" client:load />
+        <a href="/members" class="hover:text-limewash">Members</a>
+      </nav>
+      <nav id="site-support" class="flex flex-wrap gap-x-5 gap-y-2" aria-label="Legal and support">
+        <a href="/terms" class="hover:text-limewash">Terms</a>
+        <a href="/privacy" class="hover:text-limewash">Privacy</a>
+        <BugReportLauncher client:visible />
+      </nav>
+    </div>
   </div>
 </footer>

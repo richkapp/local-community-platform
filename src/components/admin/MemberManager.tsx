@@ -11,9 +11,11 @@ import {
 } from '@/lib/admin';
 import { getCurrentUser } from '@/lib/auth';
 import { toUserMessage } from '@/lib/errors';
+import { formatCommunityDate } from '@/lib/communityDate';
+import AvatarImage from '@/components/profile/AvatarImage';
 
 function dateTime(value: string | null) {
-  return value ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Never';
+  return value ? formatCommunityDate(value) : 'Never';
 }
 
 function roleLabel(role: MemberRole) {
@@ -60,7 +62,7 @@ export default function MemberManager({ isSuperAdmin }: Props) {
       demote: `Remove ${member.display_name}'s admin access?`,
       suspend: `Suspend ${member.display_name}? They will be signed out as their session expires and blocked from community actions immediately.`,
       unsuspend: `Restore ${member.display_name}'s account access?`,
-      delete: `Permanently delete ${member.display_name}? This removes their account, profile, posts, votes, and registrations. This cannot be undone.`
+      delete: `Permanently delete ${member.display_name}? This removes their account, profile photo, posts, votes, and registrations. This cannot be undone.`
     };
     if (!window.confirm(prompts[action])) return;
 
@@ -72,7 +74,7 @@ export default function MemberManager({ isSuperAdmin }: Props) {
       if (action === 'demote') await setMemberRole(member.id, 'member');
       if (action === 'suspend') await setMemberSuspension(member.id, true);
       if (action === 'unsuspend') await setMemberSuspension(member.id, false);
-      if (action === 'delete') await deleteMember(member.id);
+      if (action === 'delete') await deleteMember(member.id, member.avatar_path);
       setMembers(await listAdminMembers());
       setMessage(action === 'delete' ? `${member.display_name} was deleted.` : `${member.display_name} was updated.`);
     } catch (caught) {
@@ -112,7 +114,7 @@ export default function MemberManager({ isSuperAdmin }: Props) {
         return (
           <article key={member.id} className="card p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              {member.avatar_url ? <img src={member.avatar_url} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-braga-900 text-xl font-black text-limewash">{member.display_name.slice(0, 2).toUpperCase()}</div>}
+              <AvatarImage profile={member} imageClassName="h-16 w-16 shrink-0 rounded-2xl object-cover" fallbackClassName="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-braga-900 text-xl font-black text-limewash" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-xl font-bold text-white">{member.display_name}</h3>
@@ -148,7 +150,6 @@ export default function MemberManager({ isSuperAdmin }: Props) {
               <LinkField label="LinkedIn" href={member.linkedin_url} icon={FaLinkedinIn} />
               <LinkField label="GitHub" href={member.github_url} icon={FaGithub} />
               <LinkField label="X" href={member.x_url} icon={FaXTwitter} />
-              <LinkField label="Avatar URL" href={member.avatar_url} icon={LuGlobe} />
             </dl>
           </article>
         );

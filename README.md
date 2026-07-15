@@ -8,12 +8,14 @@ Local Community Platform is the canonical upstream repository. Braga is maintain
 
 ## What it includes
 
-- Passwordless member access through Supabase magic links and a configured community-access code
+- Passwordless existing-member sign-in plus private member- and organizer-shared invitation URLs
+- Rolling single-use member invitations and bounded organizer campaign links
 - Required transactional-email consent with an explicit no-marketing promise
-- Public posts, anonymous posting and upvoting, categories, and tags
-- Optional public member profiles with author hover cards
+- Public posts with anonymous posting, upvoting, nested comments, bookmarks, member filters, native sharing, categories, and member-created tags
+- Optional public member profiles with native avatar uploads and author hover cards
+- Optional public community voting with time-bounded single-choice ballots and per-ballot anonymity
 - Public events that send RSVP traffic to an external event page
-- Organizer tools for invites, events, post moderation, and a private member database
+- Organizer tools for invitations, events, post participation controls, voting, moderation, and a private member database
 - Super-admin controls for assigning admins, suspending access, and deleting members
 - Public bug reporting with optional contact details, organizer triage, and optional email notifications
 - Private-by-default profiles, Row Level Security, restricted RPCs, and Edge Functions
@@ -22,14 +24,14 @@ Local Community Platform is the canonical upstream repository. Braga is maintain
 ## Use it for your community
 
 1. Fork this repository or click **Use this template** on GitHub.
-2. Edit [`src/config/community.ts`](src/config/community.ts) with your community identity, landing-page language, chat link, invite code, and repository URL.
+2. Edit [`src/config/community.ts`](src/config/community.ts) with your community identity, landing-page language, chat link, repository URL, and legal jurisdiction.
 3. Create your own Supabase project and apply the migrations.
 4. Configure and deploy the three Edge Functions.
 5. Deploy the frontend to your own Vercel project.
 
 Every installation must use its own Supabase and Vercel projects. Forks never connect to Braga's production data.
 
-See **[Self-hosting](docs/self-hosting.md)** for the full setup, including the first invite and organizer account.
+See **[Self-hosting](docs/self-hosting.md)** for the full setup, including the one-time bootstrap invitation and organizer account.
 
 ### Optional bug-report email
 
@@ -56,11 +58,23 @@ Public community identity lives in one tracked file:
 export const communityConfig = {
   name: 'Your Community',
   city: 'Your City',
+  locale: 'en-GB',
+  timeZone: 'Europe/Lisbon',
+  timeZoneLabel: 'Your city time',
   tagline: 'A local community for shared interests',
   description: 'A short description of your community.',
   whatsappUrl: 'https://chat.whatsapp.com/...',
-  memberInviteCode: 'your-community-invite',
   githubUrl: 'https://github.com/you/local-community-platform',
+  legal: {
+    operatorName: 'Your Community Organizers',
+    country: 'Your Country',
+    governingLaw: 'Your governing law',
+    privacyFrameworkName: 'Your privacy framework',
+    privacyFrameworkShortName: 'Privacy law',
+    privacyFrameworkUrl: 'https://example.com/privacy-law',
+    dataProtectionAuthorityName: 'Your data-protection authority',
+    dataProtectionAuthorityUrl: 'https://example.com/authority'
+  },
   home: {
     eyebrow: 'A local community in Your City',
     heroTitle: 'Come meet your people.',
@@ -73,6 +87,8 @@ export const communityConfig = {
 ```
 
 Browser-safe Supabase settings belong in `.env`; Edge Function secrets and notification credentials belong in Supabase's secret stores. Never commit service-role keys, database passwords, deployment tokens, provider API keys, or production `.env` files.
+
+The included Terms and Privacy pages are configurable starter templates, not legal advice. Replace the `legal` values and have the pages reviewed for your operator, providers, users, and jurisdiction before launch.
 
 ## Commands
 

@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormSubmitEvent } from '@/lib/dom';
 import { fetchMyProfile, updateMyProfile } from '@/lib/profile';
+import { mergeSavedProfileWithAvatar } from '@/lib/profileDraft';
 import { toUserMessage } from '@/lib/errors';
-import type { EditableProfile } from '@/lib/types';
+import type { EditableProfile, EditableProfileRecord } from '@/lib/types';
+import type { AvatarState } from '@/lib/avatar';
 import { communityConfig } from '@/config/community';
 import AuthRequired from '@/components/auth/AuthRequired';
 import { useAuthUser } from '@/components/auth/useAuthUser';
 import { isAnonymousUser } from '@/lib/anonymous';
 import { FaGithub, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 import { LuEye, LuGlobe } from 'react-icons/lu';
+import AvatarUploader from './AvatarUploader';
 
-const emptyProfile: Partial<EditableProfile> = {
+const emptyProfile: Partial<EditableProfileRecord> = {
   handle: '',
   display_name: '',
   bio: '',
@@ -19,42 +22,97 @@ const emptyProfile: Partial<EditableProfile> = {
   github_url: '',
   x_url: '',
   avatar_url: '',
+  avatar_path: null,
   is_public: false
 };
 
 export default function ProfileForm() {
   const { user, loading: authLoading } = useAuthUser();
-  const [profile, setProfile] = useState<Partial<EditableProfile>>(emptyProfile);
+  const userId = user?.id ?? null;
+  const userIsAnonymous = isAnonymousUser(user);
+  const profileIdentity = userId && !userIsAnonymous ? userId : null;
+  const identityGenerationRef = useRef(0);
+  const avatarRevisionRef = useRef(0);
+  const [profile, setProfile] = useState<Partial<EditableProfileRecord>>(emptyProfile);
+  const [profileOwnerId, setProfileOwnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
+    const generation = identityGenerationRef.current + 1;
+    identityGenerationRef.current = generation;
+    avatarRevisionRef.current = 0;
+    const isCurrentIdentity = () => active && identityGenerationRef.current === generation;
     if (authLoading) return;
-    if (!user || isAnonymousUser(user)) {
+    if (!profileIdentity) {
+      setProfile(emptyProfile);
+      setProfileOwnerId(null);
+      setSaving(false);
+      setMessage('');
+      setError('');
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    setProfile(emptyProfile);
+    setProfileOwnerId(null);
+    setSaving(false);
+    setMessage('');
+    setError('');
     fetchMyProfile()
-      .then((data) => setProfile(data))
-      .catch((caught) => setError(toUserMessage('profile-load', caught)))
-      .finally(() => setLoading(false));
-  }, [authLoading, user]);
+      .then((data) => {
+        if (isCurrentIdentity() && data.id === profileIdentity) {
+          setProfile(data);
+          setProfileOwnerId(profileIdentity);
+        }
+      })
+      .catch((caught) => {
+        if (isCurrentIdentity()) {
+          setProfileOwnerId(profileIdentity);
+          setError(toUserMessage('profile-load', caught));
+        }
+      })
+      .finally(() => {
+        if (isCurrentIdentity()) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authLoading, profileIdentity]);
 
   function setField<K extends keyof EditableProfile>(key: K, value: EditableProfile[K]) {
     setProfile((current) => ({ ...current, [key]: value }));
   }
 
+  function applyAvatar(identity: string, generation: number, avatar: AvatarState) {
+    if (identity !== profileIdentity || generation !== identityGenerationRef.current) return;
+    avatarRevisionRef.current += 1;
+    setProfile((current) => ({
+      ...current,
+      avatar_path: avatar.avatar_path,
+      avatar_url: avatar.avatar_url,
+      updated_at: avatar.avatar_updated_at ?? current.updated_at
+    }));
+  }
+
   async function submit(event: FormSubmitEvent) {
     event.preventDefault();
+    const submittingIdentity = profileOwnerId;
+    if (!submittingIdentity || submittingIdentity !== profileIdentity) return;
+    const submittingGeneration = identityGenerationRef.current;
+    const submittingAvatarRevision = avatarRevisionRef.current;
+    const isCurrentIdentity = () => identityGenerationRef.current === submittingGeneration;
+
     setSaving(true);
     setMessage('');
     setError('');
     try {
-      const saved = await updateMyProfile({
+      const saved = await updateMyProfile(submittingIdentity, {
         handle: profile.handle?.trim().toLowerCase() || null,
         display_name: profile.display_name?.trim() || 'New builder',
         bio: profile.bio?.trim() || '',
@@ -62,20 +120,25 @@ export default function ProfileForm() {
         linkedin_url: profile.linkedin_url || null,
         github_url: profile.github_url || null,
         x_url: profile.x_url || null,
-        avatar_url: profile.avatar_url || null,
         is_public: Boolean(profile.is_public)
       });
-      setProfile(saved);
+      if (!isCurrentIdentity() || saved.id !== submittingIdentity) return;
+      setProfile((current) => mergeSavedProfileWithAvatar(
+        saved,
+        current,
+        avatarRevisionRef.current !== submittingAvatarRevision
+      ));
       setMessage('Profile saved.');
     } catch (caught) {
-      setError(toUserMessage('profile-save', caught));
+      if (isCurrentIdentity()) setError(toUserMessage('profile-save', caught));
     } finally {
-      setSaving(false);
+      if (isCurrentIdentity()) setSaving(false);
     }
   }
 
-  if (authLoading || loading) return <p className="card p-6 text-braga-100" role="status">Loading profile…</p>;
-  if (!user || isAnonymousUser(user)) return <AuthRequired title="Join the community to create a member profile" message="Ideas work without an account. Use a private invite when you want a member profile or event access." />;
+  if (authLoading) return <p className="card p-6 text-braga-100" role="status">Loading profile…</p>;
+  if (!profileIdentity) return <AuthRequired title="Join the community to create a member profile" message="Ideas work without an account. Use a private invite when you want a member profile or event access." />;
+  if (loading || profileOwnerId !== profileIdentity) return <p className="card p-6 text-braga-100" role="status">Loading profile…</p>;
   if (error && !profile.display_name) return <p className="error-message" role="alert">{error}</p>;
 
   return (
@@ -88,6 +151,17 @@ export default function ProfileForm() {
           <span className="mt-1 block text-sm leading-6 text-violet-100/80">Turn this on so other {communityConfig.name} members can find your profile and social links.</span>
         </span>
       </label>
+      <AvatarUploader
+        expectedUserId={profileIdentity}
+        identityGeneration={identityGenerationRef.current}
+        profile={{
+          display_name: profile.display_name || 'New builder',
+          avatar_url: profile.avatar_url,
+          avatar_path: profile.avatar_path,
+          updated_at: profile.updated_at
+        }}
+        onAvatarChange={applyAvatar}
+      />
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <label className="label" htmlFor="display_name">Display name</label>
@@ -119,10 +193,6 @@ export default function ProfileForm() {
         <div>
           <label className="label flex items-center gap-2" htmlFor="x_url"><FaXTwitter aria-hidden="true" /> X URL</label>
           <input id="x_url" type="url" className="input mt-2" value={profile.x_url ?? ''} onChange={(event) => setField('x_url', event.target.value)} placeholder="https://x.com/…" />
-        </div>
-        <div className="md:col-span-2">
-          <label className="label" htmlFor="avatar_url">Avatar image URL</label>
-          <input id="avatar_url" type="url" className="input mt-2" value={profile.avatar_url ?? ''} onChange={(event) => setField('avatar_url', event.target.value)} placeholder="https://…" />
         </div>
       </div>
       <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save profile'}</button>

@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalPage from '../components/legal/LegalPage.astro';
+import { communityConfig, communityPageTitle } from '../config/community';
+
+const legal = communityConfig.legal;
+---
+<BaseLayout
+  title={communityPageTitle('Privacy Policy')}
+  description={`How ${communityConfig.name} collects, uses, shares, and protects personal data.`}
+>
+  <LegalPage
+    eyebrow="Legal"
+    title="Privacy Policy"
+    summary={`This policy explains what personal data ${communityConfig.name} processes, why it is processed, who may receive it, how long it is kept, and the rights available under ${legal.privacyFrameworkShortName}.`}
+    lastUpdated="15 July 2026"
+  >
+    <section>
+      <h2>1. Who controls your data</h2>
+      <p><strong>{legal.operatorName}</strong>, based in {communityConfig.city}, {legal.country}, determines how this hosted community service processes personal data and acts as the data controller.</p>
+      <p>To contact the organizers about privacy or exercise a data-protection right, use <a href="#site-support">Report a Bug</a> in the footer, begin the description with “Privacy request”, and provide an email address so the organizers can respond privately. Identity verification may be required before a request is completed.</p>
+    </section>
+
+    <section>
+      <h2>2. Scope</h2>
+      <p>This policy covers the {communityConfig.name} website, member accounts, invitations, posts and comments, votes, bookmarks, profiles, events, and support reports. External services reached through links—including chat, event registration, GitHub, donation, and social platforms—operate under their own privacy notices.</p>
+    </section>
+
+    <section>
+      <h2>3. Data we process</h2>
+      <h3>When you browse or participate without an account</h3>
+      <ul>
+        <li>Technical request information processed by hosting and backend providers, such as IP address, request time, browser information, and requested page.</li>
+        <li>A random browser identifier stored locally for anonymous posts, votes, and bug-report rate limiting.</li>
+        <li>A one-way hash or keyed hash of an IP address used to prevent abuse and enforce reasonable rate limits.</li>
+        <li>Public content you submit, including post titles, post bodies, selected categories and tags, comments, and votes.</li>
+      </ul>
+      <h3>When you have a member account</h3>
+      <ul>
+        <li>Your email address, account identifier, authentication records, and invitation or sign-in delivery records.</li>
+        <li>Invitation security data, including request metadata, timestamps, and redemption status.</li>
+        <li>Profile information you choose to provide, such as handle, display name, biography, avatar, website, and social links. Profiles are private by default and become public only when you enable directory visibility.</li>
+        <li>Your posts, comments, votes, bookmarks, invitations, moderation status, and other community activity.</li>
+      </ul>
+      <h3>When you send a support report</h3>
+      <ul>
+        <li>The description, current page URL, random visitor identifier, and a keyed hash of the request IP address.</li>
+        <li>Your name and email address only when you choose to provide them for follow-up.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Why we process data</h2>
+      <ul>
+        <li><strong>Provide the community service and member features:</strong> to perform the service agreement or take steps you request before joining.</li>
+        <li><strong>Publish and organize community contributions:</strong> to operate a useful community archive.</li>
+        <li><strong>Protect the site and moderate content:</strong> for legitimate security, integrity, and community-safety interests.</li>
+        <li><strong>Send requested sign-in and invitation emails:</strong> after your explicit request and transactional-email confirmation.</li>
+        <li><strong>Display an optional public profile:</strong> when you enable public directory visibility.</li>
+        <li><strong>Respond to support and privacy requests:</strong> to resolve problems and meet legal obligations.</li>
+      </ul>
+      <p>Personal data is not sold or used for third-party advertising. The service does not make solely automated decisions that produce legal or similarly significant effects.</p>
+    </section>
+
+    <section>
+      <h2>5. Public, private, and anonymous participation</h2>
+      <p>Public posts, comments, vote totals, named community ballots, and opted-in public profile fields can be read by anyone. Anonymous options hide the member profile or browser identifier from the public interface, although limited technical records remain available to trusted providers and organizers where needed for security and moderation.</p>
+      <p>If a member account is deleted, non-anonymous contributions may remain de-identified as coming from a “Former member” when necessary to preserve an existing discussion. Content may also be retained where required for legal claims, safety, or other members’ rights.</p>
+    </section>
+
+    <section>
+      <h2>6. Browser storage and service providers</h2>
+      <p>The site uses browser storage for essential functions such as authentication sessions, unfinished-post recovery, and pseudonymous visitor or vote state. It does not currently use advertising cookies or behavioral analytics.</p>
+      <ul>
+        <li><strong>Supabase</strong> provides authentication, database, storage, and Edge Function infrastructure.</li>
+        <li><strong>Vercel</strong> hosts and delivers the website and may process technical request logs.</li>
+        <li><strong>Transactional email providers</strong> deliver requested sign-in, invitation, and operational messages.</li>
+        <li><strong>Community organizers</strong> access account, moderation, invitation, and support information only as needed to operate the community.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. International transfers and retention</h2>
+      <p>Infrastructure or email providers may process data outside {legal.country}. Where transfer restrictions apply, the organizers rely on an adequacy decision or appropriate provider safeguards.</p>
+      <p>Account and profile data is generally kept while an account is active. Community content remains until deleted, moderated, de-identified, or no longer needed. Invitation, security, provider-log, and support records are retained only for the period reasonably needed to operate the service, prevent misuse, meet legal duties, or establish legal claims.</p>
+    </section>
+
+    <section>
+      <h2>8. Your rights</h2>
+      <p>Subject to applicable law, you may have rights to be informed, access data, correct inaccurate data, erase data, restrict processing, receive portable data, object to processing, and withdraw consent. These rights may have lawful exceptions, including protection of other people’s rights and freedom of expression.</p>
+      <p>Send a request through <a href="#site-support">Report a Bug</a>. You may also complain to <a href={legal.dataProtectionAuthorityUrl} target="_blank" rel="noreferrer noopener">{legal.dataProtectionAuthorityName}</a>.</p>
+    </section>
+
+    <section>
+      <h2>9. Security, children, and changes</h2>
+      <p>The service uses access controls, private-by-default profiles, restricted database functions, rate limits, encrypted transport, and least-privilege infrastructure practices. No online service can guarantee absolute security.</p>
+      <p>This community service is not designed for children who cannot lawfully agree to these services on their own. A parent or guardian who believes a child’s data was submitted improperly should contact the organizers.</p>
+      <p>This policy may be updated when the service, providers, or legal requirements change. The current version and update date remain available on this page.</p>
+    </section>
+
+    <section>
+      <h2>10. Official privacy framework</h2>
+      <p class="legal-note">The reference installation is configured for the <a href={legal.privacyFrameworkUrl} target="_blank" rel="noreferrer noopener">{legal.privacyFrameworkName}</a>. Operators of forks must review and replace the legal configuration and policy text for their own organization, providers, users, and jurisdiction before launch.</p>
+    </section>
+  </LegalPage>
+</BaseLayout>

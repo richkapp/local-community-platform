@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listBugReports, updateBugReportStatus, type BugReport, type BugReportStatus } from '@/lib/admin';
 import { toUserMessage } from '@/lib/errors';
+import { formatCommunityDate } from '@/lib/communityDate';
 
 const statuses: BugReportStatus[] = ['new', 'in_review', 'done'];
 const statusLabels: Record<BugReportStatus, string> = {
@@ -10,10 +11,7 @@ const statusLabels: Record<BugReportStatus, string> = {
 };
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(new Date(value));
+  return formatCommunityDate(value);
 }
 
 export default function BugReportManager() {

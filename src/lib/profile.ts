@@ -1,8 +1,9 @@
 import { supabase } from './supabase';
-import type { EditableProfile } from './types';
+import type { EditableProfile, EditableProfileRecord } from './types';
+import { verifiedProfileIdentity } from './profileIdentity';
 
-const editableProfileSelect = 'id, handle, display_name, bio, avatar_url, website_url, linkedin_url, github_url, x_url, is_public, created_at, updated_at';
-const urlFields = ['avatar_url', 'website_url', 'linkedin_url', 'github_url', 'x_url'] as const;
+const editableProfileSelect = 'id, handle, display_name, bio, avatar_url, avatar_path, website_url, linkedin_url, github_url, x_url, is_public, updated_at';
+const urlFields = ['website_url', 'linkedin_url', 'github_url', 'x_url'] as const;
 
 export function isHttpUrl(value: string | null | undefined) {
   if (!value) return true;
@@ -29,21 +30,21 @@ export async function fetchMyProfile() {
     .from('profiles')
     .select(editableProfileSelect)
     .eq('id', userData.user.id)
-    .single<EditableProfile>();
+    .single<EditableProfileRecord>();
 
   if (error) throw error;
   return data;
 }
 
-export async function updateMyProfile(profile: Partial<EditableProfile>) {
+export async function updateMyProfile(expectedUserId: string, profile: Partial<EditableProfile>) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) throw new Error('You need to sign in first.');
+  const targetUserId = verifiedProfileIdentity(expectedUserId, userData.user.id);
 
   const safeProfile: Partial<EditableProfile> = {
     handle: profile.handle ?? null,
     display_name: profile.display_name || 'New builder',
     bio: profile.bio || '',
-    avatar_url: normalizeUrl(profile.avatar_url),
     website_url: normalizeUrl(profile.website_url),
     linkedin_url: normalizeUrl(profile.linkedin_url),
     github_url: normalizeUrl(profile.github_url),
@@ -58,9 +59,9 @@ export async function updateMyProfile(profile: Partial<EditableProfile>) {
   const { data, error } = await supabase
     .from('profiles')
     .update(safeProfile)
-    .eq('id', userData.user.id)
+    .eq('id', targetUserId)
     .select(editableProfileSelect)
-    .single<EditableProfile>();
+    .single<EditableProfileRecord>();
 
   if (error) throw error;
   return data;

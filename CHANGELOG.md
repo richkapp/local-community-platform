@@ -8,6 +8,25 @@ Repository governance and downstream separation:
 - Preserved shared Git history while keeping Braga as a separately reviewed downstream rather than an automatically synchronized deployment.
 - Documented where features belong, how Braga-born features are generalized upstream, and how upstream releases are synced back without moving credentials or production data.
 
+Generalized community capabilities promoted from the Braga reference deployment:
+
+- Replaced the shared signup code with existing-member sign-in, one-time bootstrap onboarding, rolling single-use member invitations, and bounded organizer campaign links.
+- Added private post bookmarks, member post filters, member-created tags, nested comments, participation controls, and URL-only native post sharing.
+- Added native profile-avatar uploads with client-side WebP processing, opaque Storage paths, owner-bound policies, and account-deletion cleanup.
+- Added optional public community voting with organizer-controlled visibility, time-bounded single-choice ballots, live results, and per-ballot anonymity.
+- Added configurable Terms and Privacy templates; installations must replace and review legal configuration for their own operator and jurisdiction.
+- Added installation-configured locale/timezone formatting, collision-safe avatar-bucket setup, fail-closed legacy invite classification, and complete backup/restore guidance for the promoted data model.
+
+Performance and delivery hardening:
+
+- Pre-rendered fixed routes for CDN delivery while keeping parameterized and API routes on demand.
+- Added Astro client navigation with hover-intent prefetching and a persistent global shell.
+- Consolidated browser auth, admin status, and Voting visibility into one shared session store.
+- Replaced the Posts request waterfall with a privacy-safe aggregate feed RPC that preserves both member and anonymous upvotes.
+- Skipped organizer checks for signed-out visitors and lazy-loaded the bug-report dialog.
+- Preserved Astro ClientRouter history metadata and closed persisted overlays during navigation.
+- Added focused frontend, migration, performance-architecture, output-manifest, and authorization contracts for the new boundaries.
+
 ## 0.1.2 — 2026-07-11
 
 Theme-neutral repository identity and configuration:

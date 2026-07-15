@@ -4,8 +4,12 @@ import tailwind from '@astrojs/tailwind';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  output: 'server',
+  output: 'static',
   adapter: vercel(),
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover'
+  },
   integrations: [
     react(),
     tailwind({ applyBaseStyles: false })

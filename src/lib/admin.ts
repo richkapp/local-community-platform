@@ -24,7 +24,18 @@ export type InviteRecord = {
   uses_count: number;
   expires_at: string | null;
   revoked_at: string | null;
+  invite_kind: 'system' | 'member_single' | 'admin_campaign';
   created_at: string;
+};
+
+export type MemberInviteAdminRecord = {
+  invite_id: string;
+  code: string;
+  creator_id: string;
+  creator_label: string;
+  status: 'available' | 'pending';
+  created_at: string;
+  status_at: string | null;
 };
 
 export type AdminMember = {
@@ -37,6 +48,8 @@ export type AdminMember = {
   display_name: string;
   bio: string;
   avatar_url: string | null;
+  avatar_path: string | null;
+  avatar_updated_at: string | null;
   website_url: string | null;
   linkedin_url: string | null;
   github_url: string | null;
@@ -78,31 +91,47 @@ export async function setMemberSuspension(id: string, suspended: boolean) {
   return (data || null) as string | null;
 }
 
-export async function deleteMember(id: string) {
+export async function deleteMember(id: string, avatarPath: string | null) {
+  if (avatarPath) {
+    const { error: avatarError } = await supabase.storage.from('avatars').remove([avatarPath]);
+    if (avatarError) throw avatarError;
+  }
   const { data, error } = await supabase.rpc('super_admin_delete_member', { target_user_id: id });
   if (error) throw error;
   if (data !== true) throw new Error('Member deletion was not confirmed.');
 }
 
-export async function createInvite(code: string, label: string, maxUses: number | null, expiresAt: string | null) {
-  const { data, error } = await supabase
-    .from('invites')
-    .insert({ code, label: label.trim(), max_uses: maxUses, expires_at: expiresAt })
-    .select('*')
-    .single<InviteRecord>();
+export async function createInvite(code: string, label: string, maxUses: number, expiresAt: string | null) {
+  const { data, error } = await supabase.rpc('create_admin_invite', {
+    requested_code: code,
+    requested_label: label.trim(),
+    requested_max_uses: maxUses,
+    requested_expires_at: expiresAt
+  });
   if (error) throw error;
-  return data;
+  return data as string;
 }
 
 export async function listInvites() {
-  const { data, error } = await supabase.from('invites').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabase
+    .from('invites')
+    .select('id, code, label, max_uses, uses_count, expires_at, revoked_at, invite_kind, created_at')
+    .in('invite_kind', ['admin_campaign', 'system'])
+    .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []) as InviteRecord[];
 }
 
-export async function revokeInvite(id: string) {
-  const { error } = await supabase.from('invites').update({ revoked_at: new Date().toISOString() }).eq('id', id);
+export async function listMemberInvitesForAdmin() {
+  const { data, error } = await supabase.rpc('list_member_invites_for_admin');
   if (error) throw error;
+  return (data ?? []) as MemberInviteAdminRecord[];
+}
+
+export async function revokeInvite(id: string) {
+  const { data, error } = await supabase.rpc('revoke_admin_invite', { target_invite_id: id });
+  if (error) throw error;
+  if (data !== true) throw new Error('Invite revocation was not confirmed.');
 }
 
 export async function createEvent(payload: {

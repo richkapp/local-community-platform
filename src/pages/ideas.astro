@@ -1,20 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import IdeaComposer from '../components/ideas/IdeaComposer';
-import IdeaFeed from '../components/ideas/IdeaFeed';
-import { communityConfig, communityPageTitle } from '../config/community';
+export const prerender = false;
+
+return Astro.redirect(`/posts${Astro.url.search}`, 308);
 ---
-<BaseLayout title={communityPageTitle('Posts')}>
-  <section class="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[380px_1fr] lg:px-8">
-    <aside>
-      <IdeaComposer client:load />
-    </aside>
-    <div>
-      <h1 class="text-4xl font-black text-white">Community posts</h1>
-      <p class="mt-4 text-slate-300">Ideas, resources, and perspectives from the {communityConfig.name} community. Upvotes only.</p>
-      <div class="mt-8">
-        <IdeaFeed client:load />
-      </div>
-    </div>
-  </section>
-</BaseLayout>

@@ -28,7 +28,7 @@ bun run verify
 
 - Profiles are private by default and appear publicly only after opt-in.
 - Private account data must never be exposed through public views or frontend queries.
-- Authentication is passwordless and uses the installation's configured community-access code.
+- Authentication is passwordless. Existing-member sign-in cannot create accounts; new accounts require a member- or organizer-generated invitation URL.
 - Magic-link email requests require explicit transactional-email consent.
 - Posts and voting do not require a member profile.
 - Voting is upvote-only.

@@ -1,11 +1,15 @@
-import { type SyntheticEvent, useRef, useState } from 'react';
+import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { submitBugReport } from '@/lib/bugReports';
 
-export default function BugReportDialog() {
+export default function BugReportDialog({ openOnMount = false }: { openOnMount?: boolean }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (openOnMount) dialogRef.current?.showModal();
+  }, [openOnMount]);
 
   function open() {
     setError('');
@@ -79,7 +83,7 @@ export default function BugReportDialog() {
                   <input name="email" type="email" autoComplete="email" maxLength={254} className="input mt-2 w-full" />
                 </label>
               </div>
-              <p className="text-xs leading-5 text-braga-300">We’ll only use your contact details to follow up about this report.</p>
+              <p className="text-xs leading-5 text-braga-300">We’ll only use your contact details to follow up about this report. See our <a className="font-semibold text-limewash hover:underline" href="/privacy">Privacy Policy</a>.</p>
 
               <label className="block text-sm font-semibold text-white">
                 What happened? <span className="font-normal text-braga-300">(Required)</span>

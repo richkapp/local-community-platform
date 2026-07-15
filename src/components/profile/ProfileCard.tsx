@@ -3,11 +3,11 @@ import { FaGithub, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 import { LuGlobe } from 'react-icons/lu';
 import type { PublicProfile } from '@/lib/types';
 import { isHttpUrl } from '@/lib/profile';
+import AvatarImage from './AvatarImage';
 
 type SocialLink = { label: string; href: string; Icon: IconType };
 
 export default function ProfileCard({ profile }: { profile: PublicProfile }) {
-  const initials = profile.display_name.slice(0, 2).toUpperCase();
   const links = [
     { label: 'Website', href: profile.website_url, Icon: LuGlobe },
     { label: 'LinkedIn', href: profile.linkedin_url, Icon: FaLinkedinIn },
@@ -25,11 +25,7 @@ export default function ProfileCard({ profile }: { profile: PublicProfile }) {
   return (
     <article className="card h-full p-6">
       <div className="flex items-center gap-4">
-        {profile.avatar_url && isHttpUrl(profile.avatar_url) ? (
-          <img src={profile.avatar_url} alt="" className="h-14 w-14 rounded-2xl object-cover" loading="lazy" />
-        ) : (
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-limewash font-bold text-ink-950" aria-hidden="true">{initials}</div>
-        )}
+        <AvatarImage profile={profile} imageClassName="h-14 w-14 shrink-0 rounded-2xl object-cover" fallbackClassName="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-limewash font-bold text-ink-950" />
         <div>{profile.handle ? <a href={`/members/${profile.handle}`} className="group hover:text-limewash">{name}</a> : name}</div>
       </div>
       <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-braga-100">{profile.bio || 'Sharing and learning with the local community.'}</p>

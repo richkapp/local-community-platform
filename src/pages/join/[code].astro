@@ -3,6 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import InviteEmailForm from '../../components/auth/InviteEmailForm';
 import { communityPageTitle } from '../../config/community';
 
+export const prerender = false;
+
 const code = Astro.params.code ?? '';
 const validCode = /^[a-z0-9][a-z0-9-]{3,80}$/.test(code);
 if (!validCode) Astro.response.status = 404;
@@ -15,7 +17,7 @@ if (!validCode) Astro.response.status = 404;
         <h1 class="mt-4 text-4xl font-bold">Sign in or create your account</h1>
         <p class="mt-4 text-braga-100">It is the same passwordless process. Enter your email and we’ll send a one-time magic link.</p>
         <div class="mt-8">
-          <InviteEmailForm code={code} client:load />
+          <InviteEmailForm code={code} mode="invite" client:load />
         </div>
       </>
     ) : (

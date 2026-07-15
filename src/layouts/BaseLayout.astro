@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { communityConfig } from '../config/community';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
@@ -27,6 +28,7 @@ const canonical = new URL(Astro.url.pathname, Astro.url.origin);
     <meta property="og:url" content={canonical} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <ClientRouter />
     <title>{title}</title>
   </head>
   <body class="min-h-screen bg-ink-950 text-white antialiased">
