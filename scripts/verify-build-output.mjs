@@ -15,6 +15,7 @@ const expectedStaticPages = [
   'admin/members/index.html',
   'admin/voting/index.html',
   'auth/confirm/index.html',
+  'create/index.html',
   'events/index.html',
   'members/index.html',
   'posts/index.html',

@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CreateCommunityLauncher from '../components/create-community/CreateCommunityLauncher';
+import { communityPageTitle } from '../config/community';
+---
+
+<BaseLayout
+  title={communityPageTitle('Create your community')}
+  description="Create an independent Local Community Platform with prompts matched to your skills, computer, and AI."
+>
+  <div class="create-page relative isolate overflow-hidden">
+    <div class="create-glow pointer-events-none absolute inset-x-0 top-0 -z-20 h-[44rem]" aria-hidden="true"></div>
+    <div class="create-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[44rem] opacity-35" aria-hidden="true"></div>
+
+    <section class="mx-auto max-w-6xl px-4 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-24 lg:px-8 lg:pt-28" aria-labelledby="create-title">
+      <div class="max-w-4xl">
+        <p class="text-xs font-black uppercase tracking-[0.22em] text-limewash sm:text-sm">Open-source community infrastructure</p>
+        <h1 id="create-title" class="mt-5 text-5xl font-black leading-[0.96] tracking-[-0.055em] text-white sm:text-6xl lg:text-[4.75rem]">
+          Give your local community<br class="hidden sm:block" /> a proper home.
+        </h1>
+        <p class="mt-7 max-w-3xl text-lg leading-8 text-braga-100 sm:text-xl sm:leading-9">
+          A permanent, community-owned place where its people, knowledge, events, and decisions stay organized and findable instead of disappearing across chats and feeds.
+        </p>
+        <a href="#community-launcher" class="btn-primary mt-8 gap-2">Start creating <span aria-hidden="true">↓</span></a>
+      </div>
+
+      <div class="mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
+        <div class="border-t border-white/15 pt-4">
+          <strong class="block text-white">Your installation</strong>
+          <span class="mt-1 block text-sm leading-6 text-braga-200">Your source, accounts, deployment, and data.</span>
+        </div>
+        <div class="border-t border-white/15 pt-4">
+          <strong class="block text-white">The AI you already use</strong>
+          <span class="mt-1 block text-sm leading-6 text-braga-200">ChatGPT, Claude, Gemini, Perplexity, or another helper.</span>
+        </div>
+        <div class="border-t border-white/15 pt-4">
+          <strong class="block text-white">We meet you where you are</strong>
+          <span class="mt-1 block text-sm leading-6 text-braga-200">Technical shortcut, guided local setup, or a prepared helper handoff.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="community-launcher" class="mx-auto max-w-5xl scroll-mt-24 px-4 pb-24 sm:px-6 lg:px-8 lg:pb-32">
+      <CreateCommunityLauncher client:load />
+      <p class="mx-auto mt-6 max-w-2xl text-center text-xs leading-5 text-braga-300">
+        The launcher runs no AI, stores no credentials, and makes no provider connection. It prepares prompts for your AI or helper while GitHub, Supabase, email, and Vercel accounts stay yours.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .create-page {
+    font-family: 'Instrument Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .create-glow {
+    background:
+      radial-gradient(circle at 18% 18%, rgba(217, 249, 157, 0.13), transparent 34%),
+      radial-gradient(circle at 78% 6%, rgba(34, 211, 238, 0.14), transparent 31%),
+      linear-gradient(180deg, rgba(16, 27, 45, 0.45), transparent 88%);
+  }
+
+  .create-grid {
+    background-image:
+      linear-gradient(rgba(103, 232, 249, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(103, 232, 249, 0.08) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(180deg, black, transparent 92%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #create-title,
+    #create-title + p,
+    section:first-of-type > div:first-child > p {
+      animation: create-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    #create-title { animation-delay: 80ms; }
+    #create-title + p { animation-delay: 160ms; }
+  }
+
+  @keyframes create-enter {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 639px) {
+    .create-grid { background-size: 48px 48px; }
+  }
+</style>
