@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Documentation:
+
+- Aligned the README, self-hosting guide, and contributor contract with the launcher's tagged-release language, 30-day browser-progress lifetime, untrusted-input boundary, and non-provisioning role.
+
 ## 0.4.1 — 2026-07-25
 
 Review hardening:

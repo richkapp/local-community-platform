@@ -6,7 +6,7 @@ This guide creates an independent installation for one local community. It does 
 
 Every deployed Local Community Platform includes a public `/create` launcher in its footer. It asks a small set of capability and community questions, then prepares one of four paths: a concise technical brief, a staged local-agent journey, a local-agent-plus-browser journey, or a non-secret handoff for a capable helper.
 
-The launcher is deterministic. It invokes no LLM, opens no provider connection, creates no account, and asks for no credential. Browser progress stays in local storage and can be exported as a bounded recovery JSON file containing only the answers and completed-stage identifiers. Generated prompts pin the exact public release and require real verification before calling a community ready.
+The launcher is deterministic. It invokes no LLM, opens no provider connection, creates no account, and asks for no credential. Browser progress stays in local storage for 30 days; on a shared device, use **Start over** when finished. A bounded recovery JSON file can be exported with only the approved answers and contiguous completed-stage identifiers. Generated prompts reference the tested tagged release and require organizer confirmation of reported checks before declaring a community ready.
 
 The direct instructions below remain the source of truth. Use them yourself or let the launcher package them for the AI or helper you choose.
 
