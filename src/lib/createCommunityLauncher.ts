@@ -1,11 +1,13 @@
 export const COMMUNITY_PLATFORM_RELEASE = {
-  tag: 'v0.4.0',
+  tag: 'v0.4.1',
   repository: 'https://github.com/richkapp/local-community-platform.git',
-  url: 'https://github.com/richkapp/local-community-platform/releases/tag/v0.4.0',
-  guide: 'https://github.com/richkapp/local-community-platform/blob/v0.4.0/docs/self-hosting.md',
+  url: 'https://github.com/richkapp/local-community-platform/releases/tag/v0.4.1',
+  guide: 'https://github.com/richkapp/local-community-platform/blob/v0.4.1/docs/self-hosting.md',
 } as const;
 
 export const EXPECTED_PACKAGE_MANAGER = 'bun@1.3.11';
+export const LAUNCHER_STORAGE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1_000;
+export const COMPATIBLE_RECOVERY_RELEASES = ['v0.3.0', 'v0.4.0', COMMUNITY_PLATFORM_RELEASE.tag] as const;
 
 export const INCLUDED_PLATFORM_FEATURES = [
   'Public homepage and community identity',
@@ -83,15 +85,15 @@ const OS_LABELS: Record<Exclude<OperatingSystem, ''>, string> = {
 };
 
 const STAGE_INSTRUCTIONS: Record<InstallationStageId, string> = {
-  'source-preflight': `Clone the exact pinned release into a new local folder with \`git clone --branch ${COMMUNITY_PLATFORM_RELEASE.tag} --depth 1 ${COMMUNITY_PLATFORM_RELEASE.repository} <community-folder>\`. Read AGENTS.md, README.md, and docs/self-hosting.md. Confirm the release tag and package version, install frozen dependencies, run the repository verification gate, and build the production app. Stop on a missing file, version mismatch, failed test, or failed build.`,
+  'source-preflight': `Clone the tagged release into a new local folder with \`git clone --branch ${COMMUNITY_PLATFORM_RELEASE.tag} --depth 1 ${COMMUNITY_PLATFORM_RELEASE.repository} <community-folder>\`. Read AGENTS.md, README.md, and docs/self-hosting.md. Confirm the release tag and package version, install frozen dependencies, run the repository verification gate, and build the production app. Stop on a missing file, version mismatch, failed test, or failed build.`,
   'community-identity': `Ask me for the hero image now. Check its format, crop, attribution, and public-use permission. Apply only the approved community profile through the existing community configuration. Infer regional defaults only when unambiguous. Draft public copy, ask me to approve it, and keep every built module installed. Verify the app and confirm /admin/settings still provides the centralized controls.`,
-  'github-source': `Prepare a clean organizer-owned source repository from the pinned release. Check the full diff and scan for secrets, existing deployment URLs, private invitations, member data, and generated environment files. Ask whether the repository should be public or private. Ask for explicit approval immediately before creating or pushing the remote repository.`,
+  'github-source': `Prepare a clean organizer-owned source repository from the tagged release. Check the full diff and scan for secrets, existing deployment URLs, private invitations, member data, and generated environment files. Ask whether the repository should be public or private. Ask for explicit approval immediately before creating or pushing the remote repository.`,
   supabase: `Guide me through creating my own Supabase account and project. I enter every credential directly in the official interface or local environment file. Link the local source, apply the repository's exact ordered migration chain, configure documented Auth redirect URLs, and deploy the required Edge Functions. Do not recreate policies manually and do not run against any existing production project. Verify migration and authorization state from real output.`,
   'production-email': `Guide me through configuring production SMTP for Supabase passwordless login. Explain any app-password requirement in plain language. I enter SMTP values directly in Supabase. Ask for explicit approval before sending one controlled test to an inbox I control. A built-in development mailer is not proof. Verify that the production magic-link email arrives and opens the correct deployment.`,
   'vercel-deployment': `Guide me through creating my own Vercel account and project from my GitHub repository. I enter environment values directly in Vercel. Deploy only clean main through the repository/Vercel workflow. Use the generated HTTPS address first; a custom domain is optional. Verify the effective URL, homepage identity, build source, and runtime health from real output.`,
   'organizer-settings': `Use the documented one-time bootstrap path to create my organizer account and promote only that verified account to super admin. Open /admin/settings in production. Confirm an ordinary admin cannot change super-admin controls. Safely change one setting, verify the interface and database agree, then restore the intended value.`,
   'member-proof': `Create a real invitation from the production organizer session. With a controlled second member and inbox, open the invitation, complete passwordless access, and verify the resulting member can reach member pages but not organizer-only controls. Do not expose the private invitation URL in chat or reports.`,
-  'launch-report': `Re-run the complete launch gate: public homepage, production organizer magic-link login, super-admin settings, public and member pages, events, posts, voting, organizer tools, and controlled second-member access. Produce a sanitized report containing the public URL, pinned release, account-ownership confirmation, checks run, current settings, and unresolved blockers. Include no secrets or private invitation URLs.`,
+  'launch-report': `Re-run the complete launch gate: public homepage, production organizer magic-link login, super-admin settings, public and member pages, events, posts, voting, organizer tools, and controlled second-member access. Produce a sanitized report containing the public URL, release tag, account-ownership confirmation, checks run, current settings, and unresolved blockers. Include no secrets or private invitation URLs.`,
 };
 
 function clean(value: string, maxLength = 600) {
@@ -405,6 +407,13 @@ export type LauncherRecoveryData = {
   completedStages: InstallationStageId[];
 };
 
+export function isLauncherStorageExpired(savedAt: unknown, now = Date.now()) {
+  if (savedAt === undefined) return false;
+  if (typeof savedAt !== 'string') return true;
+  const savedAtMs = Date.parse(savedAt);
+  return !Number.isFinite(savedAtMs) || savedAtMs > now + 5 * 60 * 1_000 || now - savedAtMs > LAUNCHER_STORAGE_MAX_AGE_MS;
+}
+
 export function createRecoveryData(answers: CommunityLauncherAnswers, completedStages: readonly InstallationStageId[]): LauncherRecoveryData {
   const route = resolveLauncherRoute(answers);
   return {
@@ -488,7 +497,9 @@ export function parseRecoveryData(raw: string): LauncherRecoveryData {
   const candidate = value as Record<string, unknown>;
   if (candidate.kind !== 'local-community-launcher-recovery') throw new Error('This is not a community launcher recovery file.');
   if (candidate.version !== 2) throw new Error('This recovery file uses an unsupported version.');
-  if (candidate.releaseTag !== COMMUNITY_PLATFORM_RELEASE.tag) throw new Error('This recovery file targets a different platform release.');
+  if (typeof candidate.releaseTag !== 'string' || !COMPATIBLE_RECOVERY_RELEASES.includes(candidate.releaseTag as typeof COMPATIBLE_RECOVERY_RELEASES[number])) {
+    throw new Error('This recovery file targets a different platform release.');
+  }
   const answers = recoveryAnswersFromUnknown(candidate.answers);
   const completedStages = recoveryStagesFromUnknown(candidate.completedStages);
   const route = resolveLauncherRoute(answers);

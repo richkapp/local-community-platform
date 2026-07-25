@@ -2,13 +2,24 @@
 
 ## Unreleased
 
+## 0.4.1 — 2026-07-25
+
+Review hardening:
+
+- Restored keyboard focus to each new installation-stage heading after an organizer confirms the AI-reported checks.
+- Added a 30-day browser-progress lifetime and a shared-device warning while preserving portable recovery files.
+- Accepted and upgraded compatible `v0.3.0` and `v0.4.0` recovery payloads under the strict version-2 schema.
+- Clarified that launcher milestones reflect organizer confirmation rather than independent provider-account inspection.
+- Replaced cryptographic-sounding “pinned” claims with accurate tagged-release language.
+- No database migration is required.
+
 ## 0.4.0 — 2026-07-25
 
 Guided community creation:
 
 - Added a public `/create` launcher that routes organizers by proven capability rather than AI brand or technical confidence alone.
 - Added technical, capable-local-agent, browser-only, and helper handoff paths built from deterministic prompts; the launcher invokes no LLM and connects to no provider.
-- Added a nine-stage installation journey covering pinned source, community identity, organizer-owned GitHub and Supabase projects, production email, Vercel deployment, organizer settings, controlled member proof, and a sanitized launch report.
+- Added a nine-stage installation journey covering tagged source, community identity, organizer-owned GitHub and Supabase projects, production email, Vercel deployment, organizer settings, controlled member proof, and a sanitized launch report.
 - Added browser-local progress, strict bounded recovery export/import, stage-specific diagnostic prompts, and explicit separation between a reachable site and a verified community launch.
 - Added explicit credential warnings, common secret-pattern redaction, untrusted-data boundaries, and prompts that keep provider tokens, private invitations, and environment values in provider dashboards or local environment files.
 - Included the selected AI, operating system, confirmed capabilities, and release-declared package manager in every staged installation prompt.
