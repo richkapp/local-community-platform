@@ -21,10 +21,15 @@ Local Community Platform is the canonical upstream repository. Braga is maintain
 - Centralized super-admin settings for Voting, event creation, anonymous posting, signed-out posting, anonymous comments, and anonymous replies
 - Super-admin controls for assigning admins, suspending access, and deleting members
 - Public bug reporting with optional contact details, organizer triage, and optional email notifications
+- A public, deterministic `/create` launcher that prepares a capability-matched setup path without running an AI or collecting credentials
 - Private-by-default profiles, Row Level Security, restricted RPCs, and Edge Functions
 - Astro, React, Tailwind, Supabase, Bun, and Vercel
 
 ## Use it for your community
+
+Every deployed copy includes a footer link to `/create`. The launcher asks about the organizer's technical comfort, computer, AI tools, and community, then produces a release-pinned setup brief or a staged installation journey. It runs entirely in the browser, calls no LLM or provider API, and keeps recovery state on the user's device.
+
+For direct setup:
 
 1. Fork this repository or click **Use this template** on GitHub.
 2. Edit [`src/config/community.ts`](src/config/community.ts) with your community identity, landing-page language and optional imagery, chat link and rules, repository URL, and legal jurisdiction.
@@ -34,7 +39,7 @@ Local Community Platform is the canonical upstream repository. Braga is maintain
 
 Every installation must use its own Supabase and Vercel projects. Forks never connect to Braga's production data.
 
-See **[Self-hosting](docs/self-hosting.md)** for the full setup, including the one-time bootstrap invitation and organizer account.
+See **[Self-hosting](docs/self-hosting.md)** for the guided and direct setup paths, including the one-time bootstrap invitation and organizer account.
 
 ### Optional bug-report email
 

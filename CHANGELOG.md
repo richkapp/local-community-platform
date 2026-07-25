@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.4.0 — 2026-07-25
+
+Guided community creation:
+
+- Added a public `/create` launcher that routes organizers by proven capability rather than AI brand or technical confidence alone.
+- Added technical, capable-local-agent, browser-only, and helper handoff paths built from deterministic prompts; the launcher invokes no LLM and connects to no provider.
+- Added a nine-stage installation journey covering pinned source, community identity, organizer-owned GitHub and Supabase projects, production email, Vercel deployment, organizer settings, controlled member proof, and a sanitized launch report.
+- Added browser-local progress, strict bounded recovery export/import, stage-specific diagnostic prompts, and explicit separation between a reachable site and a verified community launch.
+- Added explicit credential warnings, common secret-pattern redaction, untrusted-data boundaries, and prompts that keep provider tokens, private invitations, and environment values in provider dashboards or local environment files.
+- Included the selected AI, operating system, confirmed capabilities, and release-declared package manager in every staged installation prompt.
+- Added the launcher to footer navigation while keeping primary navigation focused on the active community.
+
 ## 0.3.0 — 2026-07-24
 
 Community-owned feature settings:
