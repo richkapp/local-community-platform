@@ -13,6 +13,7 @@ Core scope:
 - public posts with upvote-only voting, comments, bookmarks, categories, and tags;
 - optional time-bounded community voting with per-ballot anonymity;
 - external community event pages;
+- a deterministic `/create` launcher that produces setup artifacts without provisioning infrastructure or invoking an AI;
 - organizer tools for invites, events, post moderation, and admin-only member access.
 
 ## Workspace
@@ -48,6 +49,7 @@ Core scope:
 - Native Web Share and clipboard fallback for posts receive only the canonical post URL; do not add title or text payloads.
 - Preserve Astro ClientRouter metadata when changing history state, and reset persisted overlays before route preparation.
 - Keep installation legal identity and jurisdiction in `src/config/community.ts`; legal templates must be reviewed before a fork launches.
+- Treat launcher answers as untrusted input. Browser progress expires after 30 days, and persistence, recovery, prompts, and copied artifacts must redact credential-shaped values.
 - Never commit production credentials, auth links, sessions, member exports, or `.env` files.
 
 ## Commands

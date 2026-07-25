@@ -18,7 +18,7 @@ The launcher must bridge that gap without becoming a hosted installer, provision
 
 - Give every organizer an honest path from intent to an independently owned installation.
 - Route by demonstrated capability rather than AI brand or vague confidence.
-- Keep setup prompts pinned to one tested public release.
+- Keep setup prompts aligned to one tested tagged public release.
 - Teach tools only when needed and one action at a time.
 - Keep every maintained module installed; configure availability later through super-admin Settings.
 - Keep source, accounts, credentials, deployment, and member data under the organizer's control.

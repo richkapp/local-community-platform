@@ -27,7 +27,7 @@ Local Community Platform is the canonical upstream repository. Braga is maintain
 
 ## Use it for your community
 
-Every deployed copy includes a footer link to `/create`. The launcher asks about the organizer's technical comfort, computer, AI tools, and community, then produces a release-pinned setup brief or a staged installation journey. It runs entirely in the browser, calls no LLM or provider API, and keeps recovery state on the user's device.
+Every deployed copy includes a footer link to `/create`. The launcher asks about the organizer's technical comfort, computer, AI tools, and community, then produces a tagged-release setup brief or a staged installation journey. It runs entirely in the browser, calls no LLM or provider API, keeps browser progress on the user's device for 30 days, and supports portable recovery files.
 
 For direct setup:
 
