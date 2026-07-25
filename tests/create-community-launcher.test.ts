@@ -2,10 +2,12 @@ import { describe, expect, test } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 import {
   COMMUNITY_PLATFORM_RELEASE,
+  COMPATIBLE_RECOVERY_RELEASES,
   EMPTY_COMMUNITY_LAUNCHER_ANSWERS,
   EXPECTED_PACKAGE_MANAGER,
   INCLUDED_PLATFORM_FEATURES,
   INSTALLATION_STAGES,
+  LAUNCHER_STORAGE_MAX_AGE_MS,
   advanceInstallationProgress,
   buildHelperHandoff,
   buildRecoveryPrompt,
@@ -13,6 +15,7 @@ import {
   buildStagePrompt,
   buildTechnicalBrief,
   createRecoveryData,
+  isLauncherStorageExpired,
   migrateLegacyAnswers,
   parseRecoveryData,
   platformLanguageFromStoredValue,
@@ -75,8 +78,8 @@ describe('create-community launcher v2', () => {
     }
   });
 
-  test('builds one source-pinned prompt per installation stage', () => {
-    expect(COMMUNITY_PLATFORM_RELEASE.tag).toBe('v0.4.0');
+  test('builds one source-tagged prompt per installation stage', () => {
+    expect(COMMUNITY_PLATFORM_RELEASE.tag).toBe('v0.4.1');
     expect(INSTALLATION_STAGES).toHaveLength(9);
     expect(INCLUDED_PLATFORM_FEATURES.length).toBeGreaterThanOrEqual(6);
 
@@ -157,6 +160,26 @@ describe('create-community launcher v2', () => {
     expect(() => parseRecoveryData(JSON.stringify({ ...recovery, releaseTag: 'v9.9.9' }))).toThrow('This recovery file targets a different platform release.');
   });
 
+  test('upgrades compatible version-2 recovery files to the current release', () => {
+    const recovery = createRecoveryData(profile, ['source-preflight']);
+    expect(COMPATIBLE_RECOVERY_RELEASES).toEqual(['v0.3.0', 'v0.4.0', 'v0.4.1']);
+    for (const releaseTag of ['v0.3.0', 'v0.4.0']) {
+      const parsed = parseRecoveryData(JSON.stringify({ ...recovery, releaseTag }));
+      expect(parsed.releaseTag).toBe('v0.4.1');
+      expect(parsed.completedStages).toEqual(['source-preflight']);
+    }
+  });
+
+  test('expires timestamped browser progress after 30 days without rejecting legacy timestamp-free state', () => {
+    const now = Date.parse('2026-07-25T12:00:00Z');
+    expect(isLauncherStorageExpired(undefined, now)).toBeFalse();
+    expect(isLauncherStorageExpired(new Date(now).toISOString(), now)).toBeFalse();
+    expect(isLauncherStorageExpired(new Date(now - LAUNCHER_STORAGE_MAX_AGE_MS).toISOString(), now)).toBeFalse();
+    expect(isLauncherStorageExpired(new Date(now - LAUNCHER_STORAGE_MAX_AGE_MS - 1).toISOString(), now)).toBeTrue();
+    expect(isLauncherStorageExpired('not-a-date', now)).toBeTrue();
+    expect(isLauncherStorageExpired(new Date(now + 6 * 60 * 1_000).toISOString(), now)).toBeTrue();
+  });
+
   test('rejects unknown recovery answers and non-contiguous stage progress', () => {
     const recovery = createRecoveryData(profile, ['source-preflight', 'community-identity']);
     expect(() => parseRecoveryData(JSON.stringify({
@@ -222,13 +245,15 @@ describe('create-community launcher v2', () => {
     expect(launcher).toContain('Can it open a folder on this computer and run commands?');
     expect(launcher).toContain('Set up a capable tool');
     expect(launcher).toContain('Ask a technical friend');
-    expect(launcher).toContain('My AI verified this stage');
+    expect(launcher).toContain('My AI reported this stage passed');
+    expect(launcher).toContain('shared device');
+    expect(launcher).toContain('cannot inspect provider accounts');
     expect(launcher).toContain('Download recovery file');
     expect(launcher).toContain('type="file"');
     expect(launcher).not.toContain('fetch(');
     expect(launcher).not.toContain('sendBeacon');
     expect(nav).not.toContain('href="/create"');
     expect(footer).toContain('href="/create"');
-    expect(JSON.parse(packageJson).packageManager).toBe(EXPECTED_PACKAGE_MANAGER);
+    expect(JSON.parse(packageJson)).toMatchObject({ version: '0.4.1', packageManager: EXPECTED_PACKAGE_MANAGER });
   });
 });

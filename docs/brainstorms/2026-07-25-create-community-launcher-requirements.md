@@ -1,6 +1,6 @@
 # Create Community Launcher — Product Requirements
 
-**Status:** Accepted for Local Community Platform `v0.4.0`
+**Status:** Accepted for Local Community Platform `v0.4.1`
 **Date:** 2026-07-25
 **Owner:** Local Community Platform upstream
 
@@ -38,7 +38,7 @@ The launcher must bridge that gap without becoming a hosted installer, provision
 
 ### Technical organizer
 
-Uses GitHub and the terminal. Receives the pinned release, self-hosting guide, concise community profile, ownership rules, and proof gate.
+Uses GitHub and the terminal. Receives the tagged release, self-hosting guide, concise community profile, ownership rules, and proof gate.
 
 ### Organizer with a capable local coding AI
 
@@ -59,11 +59,11 @@ Uses ordinary browser chat or an unsupported local tool. Receives an official se
 3. Brand names tailor wording and official links; capability answers decide the route.
 4. Community intake asks only name, place, purpose, audience, organizer, and platform language.
 5. User-provided text is bounded, normalized, and embedded inside an explicit untrusted-data block in generated prompts.
-6. Technical users may open the exact release and self-hosting guide before completing the optional profile brief.
+6. Technical users may open the tagged release and self-hosting guide before completing the optional profile brief.
 7. Local-agent routes expose nine ordered stages: source preflight, community identity, GitHub ownership, Supabase/database, production email, Vercel deployment, organizer settings, first-member proof, and launch report.
-8. Exactly one stage is actionable at a time. Later stages remain locked until the organizer confirms the current stage was verified from real output.
+8. Exactly one stage is actionable at a time. Later stages remain locked until the organizer confirms that their AI reported the current stage passed from real output; the launcher does not inspect provider accounts itself.
 9. “I’m stuck” produces a diagnostic prompt; it does not collect raw errors, logs, or credentials.
-10. Browser progress uses local storage only. Recovery export/import uses strict, bounded, versioned JSON containing only whitelisted answers and contiguous completed-stage identifiers.
+10. Browser progress uses local storage only, expires after 30 days, and carries a shared-device warning. Recovery export/import uses strict, bounded, versioned JSON containing only whitelisted answers and contiguous completed-stage identifiers, with explicit compatibility for unchanged version-2 payloads.
 11. Changing route answers resets stage progress. Changing community facts reopens identity and every dependent stage.
 12. The interface separately marks **Site live** after deployment and **Community ready** only after the complete proof sequence.
 13. The primary community navigation remains focused on community participation. `/create` is discoverable from the footer.
@@ -81,7 +81,7 @@ Uses ordinary browser chat or an unsupported local tool. Receives an official se
 
 ## Release requirements
 
-- Package version, launcher release tag, release URL, clone command, and tagged guide must all name `v0.4.0`.
+- Package version, launcher release tag, release URL, clone command, and tagged guide must all name `v0.4.1`.
 - Upstream verification and browser QA must pass before merge.
 - The public tag must point to the merged upstream tree and be published as a non-draft, non-prerelease release.
 - A fresh clone of the public tag must install with the frozen lockfile, pass the full verification gate, and contain `/create`, `/admin/settings`, and the complete migration chain.
@@ -90,7 +90,7 @@ Uses ordinary browser chat or an unsupported local tool. Receives an official se
 ## Acceptance criteria
 
 - Technical, browser-only, local-coding, and autonomous-agent routes are reachable from realistic answer combinations.
-- Every generated artifact references `v0.4.0`, includes the selected AI/OS/tooling context, treats community data as bounded and untrusted, asks for no credential, and redacts common secret patterns.
+- Every generated artifact references `v0.4.1`, includes the selected AI/OS/tooling context, treats community data as bounded and untrusted, asks for no credential, and redacts common secret patterns.
 - Recovery round-trips only approved fields and rejects malformed, unknown-enum, wrong-version, or non-contiguous progress payloads.
 - The page works on desktop and mobile, supports keyboard interaction, moves focus to each new heading, announces status, and respects reduced motion.
 - The footer contains `/create`; primary navigation does not.

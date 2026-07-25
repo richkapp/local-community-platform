@@ -20,6 +20,7 @@ import {
   buildStagePrompt,
   buildTechnicalBrief,
   createRecoveryData,
+  isLauncherStorageExpired,
   migrateLegacyAnswers,
   parseRecoveryData,
   resolveLauncherRoute,
@@ -304,12 +305,17 @@ export default function CreateCommunityLauncher() {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = parseRecoveryData(saved);
-        const candidate = JSON.parse(saved) as { step?: unknown };
-        setAnswers(parsed.answers);
-        setCompletedStages(parsed.completedStages);
-        setStep(isStepId(candidate.step) ? candidate.step : firstIncompleteStep(parsed.answers));
-        setMessage('Your progress was restored from this browser.');
+        const candidate = JSON.parse(saved) as { step?: unknown; savedAt?: unknown };
+        if (isLauncherStorageExpired(candidate.savedAt)) {
+          window.localStorage.removeItem(STORAGE_KEY);
+          setMessage('Saved browser progress expired after 30 days. Import a recovery file or start again.');
+        } else {
+          const parsed = parseRecoveryData(saved);
+          setAnswers(parsed.answers);
+          setCompletedStages(parsed.completedStages);
+          setStep(isStepId(candidate.step) ? candidate.step : firstIncompleteStep(parsed.answers));
+          setMessage('Your progress was restored from this browser.');
+        }
       } else {
         const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
         if (legacy) {
@@ -334,7 +340,7 @@ export default function CreateCommunityLauncher() {
       return;
     }
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createRecoveryData(answers, completedStages), step }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...createRecoveryData(answers, completedStages), step, savedAt: new Date().toISOString() }));
     } catch {
       // Browser storage is optional. The launcher remains fully usable.
     }
@@ -351,6 +357,10 @@ export default function CreateCommunityLauncher() {
     }
     document.getElementById('launcher-step-title')?.focus();
   }, [step]);
+
+  useEffect(() => {
+    if (step === 'outcome' && completedStages.length > 0) document.getElementById('launcher-step-title')?.focus();
+  }, [completedStages.length, step]);
 
   function moveTo(target: StepId) {
     setErrors([]);
@@ -474,7 +484,7 @@ export default function CreateCommunityLauncher() {
     if (!currentStage) return;
     setCompletedStages((current) => advanceInstallationProgress(current, currentStage.id));
     setShowHelp(false);
-    setMessage(`${currentStage.title} marked verified.`);
+    setMessage(`${currentStage.title} confirmed from your AI's reported checks.`);
   }
 
   const communityQuestion = COMMUNITY_QUESTIONS.find((question) => question.step === step);
@@ -514,7 +524,7 @@ export default function CreateCommunityLauncher() {
             <p className="mt-4 max-w-xl text-lg leading-8 text-braga-100">Answer a few simple questions. We will match the instructions to your computer and the AI you already use.</p>
             <div className="mt-7 flex items-start gap-3 rounded-2xl border border-braga-300/20 bg-braga-400/[0.06] p-4 text-sm leading-6 text-braga-100">
               <LuShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-braga-300" aria-hidden="true" />
-              <p>This launcher does not run an AI, require an account, or ask for credentials. You use your own AI or a trusted helper and create every provider account yourself.</p>
+              <p>This launcher does not run an AI, require an account, or ask for credentials. Progress is saved in this browser for 30 days; on a shared device, use Start over when done.</p>
             </div>
           </div>
         )}
@@ -602,7 +612,7 @@ export default function CreateCommunityLauncher() {
             <p className="text-sm font-black uppercase tracking-[0.18em] text-limewash">Configuration brief</p>
             <h2 id="launcher-step-title" tabIndex={-1} className="mt-3 text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl">Source, profile, proof gate. Done.</h2>
             <p className="mt-3 mb-8 text-base leading-7 text-braga-100">Use this as the concise handoff to your agent, or go straight to the tagged source.</p>
-            <PromptPanel title="Technical launch brief" description="Pinned source plus your approved community profile." value={technicalBrief} copied={copied === 'technical'} onCopy={() => void copyArtifact('technical', technicalBrief)} onDownload={() => downloadText('community-technical-brief.md', technicalBrief)} />
+            <PromptPanel title="Technical launch brief" description="Tagged source plus your approved community profile." value={technicalBrief} copied={copied === 'technical'} onCopy={() => void copyArtifact('technical', technicalBrief)} onDownload={() => downloadText('community-technical-brief.md', technicalBrief)} />
           </div>
         )}
 
@@ -633,11 +643,11 @@ export default function CreateCommunityLauncher() {
               <div>
                 <p className="text-sm font-black uppercase tracking-[0.18em] text-limewash">Installation journey</p>
                 <h2 id="launcher-step-title" tabIndex={-1} className="mt-3 text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl">{communityReady ? 'Community ready.' : currentStage?.title}</h2>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-braga-100">{communityReady ? 'All nine stages were confirmed from real checks. Keep the sanitized launch report.' : currentStage?.summary}</p>
+                <p className="mt-3 max-w-2xl text-base leading-7 text-braga-100">{communityReady ? 'All nine stages were confirmed from reported checks. Keep the sanitized launch report.' : `${currentStage?.summary} Progress reflects your confirmation; this launcher cannot inspect provider accounts.`}</p>
               </div>
               <div className="flex gap-2">
-                {siteLive && <span className="rounded-full bg-cyan-300/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-cyan-200">Site live</span>}
-                {communityReady && <span className="rounded-full bg-limewash/15 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-limewash">Community ready</span>}
+                {siteLive && <span className="rounded-full bg-cyan-300/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-cyan-200">Site live confirmed</span>}
+                {communityReady && <span className="rounded-full bg-limewash/15 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-limewash">Community ready confirmed</span>}
               </div>
             </div>
 
@@ -645,7 +655,7 @@ export default function CreateCommunityLauncher() {
               {INSTALLATION_STAGES.map((stageItem, index) => {
                 const done = index < completedStages.length;
                 const active = index === completedStages.length;
-                return <li key={stageItem.id} aria-current={active ? 'step' : undefined} className={`rounded-2xl border p-4 ${done ? 'border-limewash/35 bg-limewash/[0.06]' : active ? 'border-cyan-300/40 bg-cyan-300/[0.06]' : 'border-white/10 bg-white/[0.02] opacity-55'}`}><span className="text-xs font-black text-braga-300">{index + 1}</span><strong className="mt-1 block text-sm text-white">{stageItem.title}</strong>{done && <span className="mt-2 block text-xs font-bold text-limewash">Verified</span>}</li>;
+                return <li key={stageItem.id} aria-current={active ? 'step' : undefined} className={`rounded-2xl border p-4 ${done ? 'border-limewash/35 bg-limewash/[0.06]' : active ? 'border-cyan-300/40 bg-cyan-300/[0.06]' : 'border-white/10 bg-white/[0.02] opacity-55'}`}><span className="text-xs font-black text-braga-300">{index + 1}</span><strong className="mt-1 block text-sm text-white">{stageItem.title}</strong>{done && <span className="mt-2 block text-xs font-bold text-limewash">Confirmed</span>}</li>;
               })}
             </ol>
 
@@ -654,7 +664,7 @@ export default function CreateCommunityLauncher() {
                 <PromptPanel title={`${completedStages.length + 1}. ${currentStage.title}`} description="Paste only this stage into your capable local AI." value={stagePrompt} copied={copied === `stage-${currentStage.id}`} onCopy={() => void copyArtifact(`stage-${currentStage.id}`, stagePrompt)} onDownload={() => downloadText(`${currentStage.id}-prompt.md`, stagePrompt)} />
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <button type="button" onClick={() => setShowHelp((current) => !current)} className="btn-secondary">I’m stuck</button>
-                  <button type="button" onClick={markCurrentStageVerified} className="btn-primary gap-2"><LuCheck aria-hidden="true" /> My AI verified this stage</button>
+                  <button type="button" onClick={markCurrentStageVerified} className="btn-primary gap-2"><LuCheck aria-hidden="true" /> My AI reported this stage passed</button>
                 </div>
                 {showHelp && <div className="mt-5"><PromptPanel title="Diagnostic prompt" description="A fresh AI inspects real state and gives one safe next action." value={recoveryPrompt} copied={copied === 'diagnostic'} onCopy={() => void copyArtifact('diagnostic', recoveryPrompt)} onDownload={() => downloadText(`${currentStage.id}-diagnostic.md`, recoveryPrompt)} /></div>}
               </div>
