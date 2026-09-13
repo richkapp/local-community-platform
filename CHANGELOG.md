@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Removed the creator coffee donation link from the shared site footer; platform attribution and navigation are unchanged.
+
 Documentation:
 
 - Aligned the README, self-hosting guide, and contributor contract with the launcher's tagged-release language, 30-day browser-progress lifetime, untrusted-input boundary, and non-provisioning role.
