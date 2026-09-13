@@ -378,9 +378,8 @@ describe('launch frontend contracts', () => {
     expect(footer).toContain('Local Community Platform');
     expect(footer).toContain('an open-source platform for local communities.');
     expect(footer).toContain('text-limewash underline');
-    expect(footer).toContain('https://buymeacoffee.com/richkapp');
-    expect(footer).toContain('☕️ buy the creator a coffee');
-    expect(footer).toContain('text-braga-200/75');
+    expect(footer).not.toContain('buymeacoffee.com');
+    expect(footer).not.toMatch(/buy the creator a coffee/i);
     expect(footer).toContain('BugReportLauncher client:visible');
     expect(footer).not.toContain('Source code');
     await expect(access(new URL('src/pages/join.astro', root))).rejects.toThrow();
